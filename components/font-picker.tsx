@@ -66,9 +66,9 @@ export function FontPicker({ value, onValueChange }: FontPickerProps) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between font-normal"
+          className="w-full justify-between font-normal min-w-0"
         >
-          <span className="truncate">
+          <span className="truncate flex-1 min-w-0 text-left">
             {value || "Select font..."}
           </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

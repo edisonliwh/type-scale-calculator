@@ -57,15 +57,15 @@ const SHADCN_TEXT_STYLES = [
   { name: "body-lg", fontSize: 18, fontWeight: 400, lineHeight: 1.75, letterSpacing: 0, category: "body" },
 ];
 
-// Default configuration - Using Shadcn Type as default
+// Default configuration
 const defaultConfig: FluidTypeConfig = {
   minWidth: 375,
   maxWidth: 1440,
   minFontSize: 16,
   maxFontSize: 16,
-  minRatio: "shadcn" as any,
-  maxRatio: "shadcn" as any,
-  steps: SHADCN_TEXT_STYLES.map(s => s.name),
+  minRatio: 1.125,
+  maxRatio: 1.125,
+  steps: ["body-sm", "body", "body-lg", "heading-6", "heading-5", "heading-4", "heading-3", "heading-2", "heading-1"],
   baseStep: "body",
   remValue: 16,
   prefix: "fs",
@@ -196,7 +196,8 @@ export function FluidTypeCalculator() {
   };
 
   return (
-    <div className="relative flex flex-col lg:flex-row h-screen p-3 gap-3 font-sans text-foreground overflow-hidden canvas-background">
+    <div className="relative flex flex-col h-screen font-sans text-foreground overflow-hidden canvas-background">
+      <div className="flex flex-col lg:flex-row flex-1 p-3 gap-3 min-h-0">
       {/* View Switcher - Stamp Style - Right Edge of Sidebar (Outside) */}
       <div className="absolute left-[310px] top-[84px] z-20 flex flex-col hidden lg:flex">
           <button
@@ -264,6 +265,7 @@ export function FluidTypeCalculator() {
           
           {/* SECTION: BASE SETTINGS (Top) */}
           <div className="space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'oklch(0.708 0 0)' }}>Base</h3>
              <div className="grid gap-3">
                 <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
                     <Label className="text-sm font-medium text-gray-700 w-[100px] shrink-0">Font-size</Label>
@@ -308,7 +310,7 @@ export function FluidTypeCalculator() {
                                 }
                             }}
                         >
-                            <SelectTrigger className="w-full bg-white border-gray-200 h-9 focus:ring-gray-400 [&>span]:truncate">
+                            <SelectTrigger className="w-full bg-white border-gray-200 h-9 focus:ring-gray-400 min-w-0">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -324,7 +326,7 @@ export function FluidTypeCalculator() {
 
           {/* SECTION: RESPONSIVE */}
           <div className="space-y-4">
-            <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 font-title">Responsive</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'oklch(0.708 0 0)' }}>Responsive</h3>
             
             <div className="grid gap-3">
                  <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
@@ -383,7 +385,7 @@ export function FluidTypeCalculator() {
                                 }
                             }}
                         >
-                            <SelectTrigger className="w-full bg-white border-gray-200 h-9 focus:ring-gray-400 [&>span]:truncate">
+                            <SelectTrigger className="w-full bg-white border-gray-200 h-9 focus:ring-gray-400 min-w-0">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -399,7 +401,7 @@ export function FluidTypeCalculator() {
 
           {/* SECTION: BODY */}
           <div className="space-y-4">
-            <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 font-title">Body</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'oklch(0.708 0 0)' }}>Body</h3>
             
             <div className="grid gap-3">
                 <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
@@ -419,7 +421,7 @@ export function FluidTypeCalculator() {
                             value={config.fontWeight.toString()}
                             onValueChange={(val) => handleInputChange("fontWeight", Number(val))}
                         >
-                            <SelectTrigger className="w-full bg-white border-gray-200 h-9 focus:ring-gray-400 [&>span]:truncate">
+                            <SelectTrigger className="w-full bg-white border-gray-200 h-9 focus:ring-gray-400 min-w-0">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -461,8 +463,8 @@ export function FluidTypeCalculator() {
                  <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
                     <Label className="text-sm font-medium text-gray-700 w-[100px] shrink-0">Color</Label>
                     <div className="flex gap-2 h-9 flex-1 min-w-0">
-                        <div className="w-full relative bg-white border border-gray-200 rounded-md overflow-hidden flex items-center px-2">
-                             <span className="text-xs font-mono truncate flex-1 text-gray-600">{config.color}</span>
+                        <div className="w-full relative bg-white border border-gray-200 rounded-md overflow-hidden flex items-center px-2 min-w-0">
+                             <span className="text-xs font-mono truncate flex-1 text-gray-600 min-w-0">{config.color}</span>
                              <div className="w-5 h-5 border rounded-full overflow-hidden shrink-0 ml-2 relative shadow-inner">
                                 <input 
                                     type="color" 
@@ -479,8 +481,8 @@ export function FluidTypeCalculator() {
                  <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
                     <Label className="text-sm font-medium text-gray-700 w-[100px] shrink-0">Background</Label>
                      <div className="flex gap-2 h-9 flex-1 min-w-0">
-                        <div className="w-full relative bg-white border border-gray-200 rounded-md overflow-hidden flex items-center px-2">
-                             <span className="text-xs font-mono truncate flex-1 text-gray-600">{config.backgroundColor}</span>
+                        <div className="w-full relative bg-white border border-gray-200 rounded-md overflow-hidden flex items-center px-2 min-w-0">
+                             <span className="text-xs font-mono truncate flex-1 text-gray-600 min-w-0">{config.backgroundColor}</span>
                              <div className="w-5 h-5 border rounded-full overflow-hidden shrink-0 ml-2 relative shadow-inner">
                                 <input 
                                     type="color" 
@@ -500,7 +502,7 @@ export function FluidTypeCalculator() {
 
           {/* SECTION: HEADINGS */}
           <div className="space-y-4">
-            <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 font-title">Headings</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'oklch(0.708 0 0)' }}>Headings</h3>
             
             <div className="grid gap-3">
                 <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
@@ -528,7 +530,7 @@ export function FluidTypeCalculator() {
                             value={config.headingFontWeight.toString()}
                             onValueChange={(val) => handleInputChange("headingFontWeight", Number(val))}
                         >
-                            <SelectTrigger className="w-full bg-white border-gray-200 h-9 focus:ring-gray-400 [&>span]:truncate">
+                            <SelectTrigger className="w-full bg-white border-gray-200 h-9 focus:ring-gray-400 min-w-0">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -570,8 +572,8 @@ export function FluidTypeCalculator() {
                  <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
                     <Label className="text-sm text-gray-600 w-[100px] shrink-0">Color</Label>
                     <div className="flex gap-2 h-9 flex-1 min-w-0">
-                        <div className="w-full relative bg-white border border-gray-200 rounded-md overflow-hidden flex items-center px-2">
-                             <span className="text-xs font-mono truncate flex-1 text-gray-600">
+                        <div className="w-full relative bg-white border border-gray-200 rounded-md overflow-hidden flex items-center px-2 min-w-0">
+                             <span className="text-xs font-mono truncate flex-1 text-gray-600 min-w-0">
                                  {config.headingColor === 'inherit' ? 'inherit' : config.headingColor}
                              </span>
                              <div className="w-5 h-5 border rounded-full overflow-hidden shrink-0 ml-2 relative shadow-inner">
@@ -594,27 +596,10 @@ export function FluidTypeCalculator() {
 
       {/* RIGHT MAIN: PREVIEW */}
       <main className="flex-1 flex flex-col h-full overflow-hidden relative">
-        {/* GitHub Icon - Top Right */}
-        <Button
-          asChild
-          variant="outline"
-          size="icon"
-          className="absolute top-4 right-4 z-50 bg-white border-gray-200 shadow-xs hover:bg-gray-50"
-          aria-label="View on GitHub"
-        >
-          <a
-            href="https://github.com/edisonliwh/type-scale-calculator"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Github className="h-5 w-5 text-gray-900" />
-          </a>
-        </Button>
-          
          {/* Content Area */}
-         <div className="flex-1 relative z-10 flex flex-col h-full w-full">
+         <div className="flex-1 relative z-10 flex flex-col h-full w-full min-h-0">
              
-             <div className="flex-1 flex flex-col w-full h-full">
+             <div className="flex-1 flex flex-col w-full min-h-0 overflow-hidden">
                 
                 <div 
                     className="flex-1 overflow-y-auto transition-colors duration-300 custom-scrollbar"
@@ -622,7 +607,7 @@ export function FluidTypeCalculator() {
                 >
                      <div 
                         className={cn(
-                            "max-w-[1200px] mx-auto transition-all duration-300 ease-out min-h-full",
+                            "max-w-[1200px] mx-auto transition-all duration-300 ease-out",
                             config.previewMode === 'blog' ? "p-12 lg:p-16" : "p-4 lg:p-8"
                         )}
                         style={{
@@ -674,11 +659,70 @@ export function FluidTypeCalculator() {
                                 </div>
                              </Tabs>
                          )}
-                     </div>
+                    </div>
                 </div>
-             </div>
-         </div>
+            </div>
+        </div>
+        
+        {/* Footer with Reference Links */}
+        <footer className="sticky bottom-0 px-6 shrink-0 border-t border-gray-100 z-20" style={{ paddingTop: '12px' }}>
+          <div className="max-w-[1200px] mx-auto">
+            <div className="flex flex-wrap items-center justify-center gap-4 text-xs">
+              <span style={{ color: 'oklch(55.6% 0 0)' }}>Reference links:</span>
+              <a
+                href="https://spencermortensen.com/articles/typographic-scale/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:opacity-80"
+                style={{ color: 'oklch(55.6% 0 0)' }}
+              >
+                The typographic scale
+              </a>
+              <a
+                href="https://24ways.org/2011/composing-the-new-canon"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:opacity-80"
+                style={{ color: 'oklch(55.6% 0 0)' }}
+              >
+                Composing the New Canon
+              </a>
+              <a
+                href="https://typescale.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:opacity-80"
+                style={{ color: 'oklch(55.6% 0 0)' }}
+              >
+                Type Scale
+              </a>
+              <a
+                href="https://www.layoutgridcalculator.com/type-scale/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:opacity-80"
+                style={{ color: 'oklch(55.6% 0 0)' }}
+              >
+                Layout Grid Calculator - Type Scale
+              </a>
+              <span style={{ color: 'oklch(55.6% 0 0)' }}>|</span>
+              <a
+                href="https://github.com/edisonliwh/type-scale-calculator"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:opacity-80 flex items-center gap-1"
+                style={{ color: 'oklch(55.6% 0 0)' }}
+              >
+                <svg width="14" height="14" viewBox="0 0 98 96" xmlns="http://www.w3.org/2000/svg" style={{ fill: 'oklch(55.6% 0 0)' }}>
+                  <path fillRule="evenodd" clipRule="evenodd" d="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z" />
+                </svg>
+                GitHub
+              </a>
+            </div>
+          </div>
+        </footer>
       </main>
+      </div>
     </div>
   );
 }
