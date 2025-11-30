@@ -203,12 +203,17 @@ export function FluidTypeCalculator() {
           <button
               onClick={() => handleInputChange('previewMode', 'blog')}
               className={cn(
-                  "relative w-12 h-20 border rounded-tr-sm transition-all cursor-pointer flex items-center justify-center group",
+                  "relative border rounded-tr-sm transition-all cursor-pointer flex items-center justify-center group",
                   config.previewMode === 'blog'
-                      ? "bg-orange-100 border-orange-300 z-10 rounded-br-sm"
-                      : "bg-orange-50 border-orange-200 border-dashed z-0 rounded-br-0"
+                      ? "border-orange-300 z-10 rounded-br-sm backdrop-blur-sm"
+                      : "border-orange-200 border-dashed z-0 rounded-br-0"
               )}
               style={{
+                  width: '40px',
+                  height: '90px',
+                  backgroundColor: config.previewMode === 'blog' 
+                      ? 'rgba(255, 237, 213, 0.9)' // orange-50 with 90% opacity when active
+                      : 'rgba(255, 237, 213, 0.6)', // orange-50 with 60% opacity when inactive
                   boxShadow: config.previewMode === 'blog' 
                       ? "rgba(0, 0, 0, 0.1) 0px 2px 8px 0px, rgba(0, 0, 0, 0.05) 0px 1px 3px 0px"
                       : "rgba(0, 0, 0, 0.05) 0px 1px 3px 0px"
@@ -224,12 +229,17 @@ export function FluidTypeCalculator() {
           <button
               onClick={() => handleInputChange('previewMode', 'landing')}
               className={cn(
-                  "relative w-12 h-20 border rounded-br-sm transition-all cursor-pointer flex items-center justify-center group -mt-[2px]",
+                  "relative border rounded-br-sm transition-all cursor-pointer flex items-center justify-center group -mt-[2px]",
                   config.previewMode === 'landing'
-                      ? "bg-purple-100 border-purple-300 z-10 rounded-tr-sm"
-                      : "bg-purple-50 border-purple-200 border-dashed z-0 rounded-tr-0"
+                      ? "border-purple-300 z-10 rounded-tr-sm backdrop-blur-sm"
+                      : "border-purple-200 border-dashed z-0 rounded-tr-0"
               )}
               style={{
+                  width: '40px',
+                  height: '90px',
+                  backgroundColor: config.previewMode === 'landing' 
+                      ? 'rgba(250, 245, 255, 0.9)' // purple-50 with 90% opacity when active
+                      : 'rgba(250, 245, 255, 0.6)', // purple-50 with 60% opacity when inactive
                   boxShadow: config.previewMode === 'landing' 
                       ? "rgba(0, 0, 0, 0.1) 0px 2px 8px 0px, rgba(0, 0, 0, 0.05) 0px 1px 3px 0px"
                       : "rgba(0, 0, 0, 0.05) 0px 1px 3px 0px"
@@ -245,7 +255,7 @@ export function FluidTypeCalculator() {
       </div>
       
       {/* LEFT SIDEBAR: CONTROLS - MacOS Style */}
-      <aside className="relative z-30 w-full lg:w-[300px] flex-shrink-0 rounded-2xl backdrop-blur-2xl flex flex-col h-full overflow-hidden transition-all bg-white" style={{ boxShadow: "rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px" }}>
+      <aside className="relative z-30 w-full lg:w-[300px] flex-shrink-0 rounded-2xl backdrop-blur-xl flex flex-col h-full overflow-hidden transition-all bg-white/80" style={{ boxShadow: "rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px" }}>
         
         {/* Header */}
         <div className="p-5 border-b border-black/5 flex items-center gap-3 shrink-0">
