@@ -16,7 +16,8 @@ import {
   Maximize,
   Minimize,
   Eye,
-  ChevronDown
+  ChevronDown,
+  Github
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -263,7 +264,7 @@ export function FluidTypeCalculator() {
           
           {/* SECTION: BASE SETTINGS (Top) */}
           <div className="space-y-4">
-             <div className="grid gap-4">
+             <div className="grid gap-3">
                 <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
                     <Label className="text-sm font-medium text-gray-700 w-[100px] shrink-0">Font-size</Label>
                     <div className="relative flex-1 min-w-0">
@@ -593,6 +594,22 @@ export function FluidTypeCalculator() {
 
       {/* RIGHT MAIN: PREVIEW */}
       <main className="flex-1 flex flex-col h-full overflow-hidden relative">
+        {/* GitHub Icon - Top Right */}
+        <Button
+          asChild
+          variant="outline"
+          size="icon"
+          className="absolute top-4 right-4 z-50 bg-white border-gray-200 shadow-xs hover:bg-gray-50"
+          aria-label="View on GitHub"
+        >
+          <a
+            href="https://github.com/edisonliwh/type-scale-calculator"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Github className="h-5 w-5 text-gray-900" />
+          </a>
+        </Button>
           
          {/* Content Area */}
          <div className="flex-1 relative z-10 flex flex-col h-full w-full">
@@ -755,7 +772,7 @@ function HeadingPreview({ steps, config }: { steps: any[], config: FluidTypeConf
                             <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'oklch(70.8% 0 0)' }}>
                                 {categoryLabels[category]}
                             </h3>
-                            <div className="flex-1 h-px" style={{ backgroundColor: 'oklch(70.8% 0 0)' }} />
+                            <div className="flex-1 h-px" style={{ backgroundColor: 'oklch(87% 0 0)' }} />
                         </div>
                     )}
                     {(categorySteps as typeof sortedSteps).map((step: any, i: number) => (
