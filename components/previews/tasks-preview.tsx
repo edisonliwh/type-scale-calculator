@@ -134,19 +134,19 @@ export function TasksPreview({ steps, config }: TasksPreviewProps) {
                 <TableCell>
                     <Checkbox />
                 </TableCell>
-                <TableCell className="font-medium" style={getStyle("body-sm")}>{task.id}</TableCell>
+                <TableCell style={{ ...getStyle("body"), fontWeight: 400 }}>{task.id}</TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
-                    <Badge variant="outline" style={getStyle("body-sm")}>{task.label}</Badge>
-                    <span className="max-w-[500px] truncate font-medium" style={getStyle("body")}>
+                    <Badge variant="outline" style={{ ...getStyle("body"), fontWeight: 400 }}>{task.label}</Badge>
+                    <span className="max-w-[500px] truncate" style={{ ...getStyle("body"), fontWeight: 400 }}>
                       {task.title}
                     </span>
                   </div>
                 </TableCell>
-                <TableCell style={getStyle("body-sm")}>
+                <TableCell style={{ ...getStyle("body"), fontWeight: 400 }}>
                     {task.status}
                 </TableCell>
-                <TableCell style={getStyle("body-sm")}>{task.priority}</TableCell>
+                <TableCell style={{ ...getStyle("body"), fontWeight: 400 }}>{task.priority}</TableCell>
                 <TableCell className="text-right">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>

@@ -47,9 +47,9 @@ import { SnakeBackground } from "@/components/snake-background";
 const SHADCN_TEXT_STYLES = [
   // Headings
   { name: "heading-1", fontSize: 48, fontWeight: 800, lineHeight: 1, letterSpacing: -0.025, category: "heading" },
-  { name: "heading-2", fontSize: 30, fontWeight: 600, lineHeight: 2.25, letterSpacing: -0.025, category: "heading" },
-  { name: "heading-3", fontSize: 24, fontWeight: 600, lineHeight: 2, letterSpacing: -0.025, category: "heading" },
-  { name: "heading-4", fontSize: 20, fontWeight: 600, lineHeight: 1.75, letterSpacing: -0.025, category: "heading" },
+  { name: "heading-2", fontSize: 30, fontWeight: 600, lineHeight: 1.2, letterSpacing: -0.025, category: "heading" },
+  { name: "heading-3", fontSize: 24, fontWeight: 600, lineHeight: 1.333, letterSpacing: -0.025, category: "heading" },
+  { name: "heading-4", fontSize: 20, fontWeight: 600, lineHeight: 1.4, letterSpacing: -0.025, category: "heading" },
   { name: "heading-5", fontSize: 18, fontWeight: 600, lineHeight: 1.5, letterSpacing: -0.025, category: "heading" },
   { name: "heading-6", fontSize: 16, fontWeight: 600, lineHeight: 1.5, letterSpacing: -0.025, category: "heading" },
   // Body
@@ -154,6 +154,7 @@ export function FluidTypeCalculator() {
     };
   }, [crabEnabled]);
 
+
   // Calculate steps - use Shadcn styles if selected, otherwise use fluid calculation
   const steps = useMemo(() => {
     if (config.maxRatio === "shadcn" || config.minRatio === "shadcn") {
@@ -212,15 +213,7 @@ export function FluidTypeCalculator() {
 
   return (
     <div 
-      className={cn(
-        "relative flex flex-col h-screen font-sans text-foreground overflow-hidden",
-        !crabEnabled && "canvas-background"
-      )}
-      style={{
-        backgroundColor: crabEnabled 
-          ? 'oklch(98% 0.016 73.684 / 0.5)' 
-          : 'oklch(98.5% 0.001 106.423 / 0.5)'
-      }}
+      className="relative flex flex-col h-screen font-sans text-foreground overflow-hidden"
     >
       {/* Snake game will be rendered inside the main content area */}
       <div className="flex flex-row flex-1 p-3 gap-3 min-h-0 overflow-hidden">
@@ -859,6 +852,18 @@ function HeadingPreview({ steps, config }: { steps: any[], config: FluidTypeConf
         body: "body"
     };
 
+    const styleDescriptions: Record<string, string> = {
+        "heading-1": "Primary page title for marketing surfaces. Used on standalone marketing content such as upsell flows, feature promotions, or campaign landing pages.",
+        "heading-2": "Used as the largest attention-grabbing heading on product pages, such as welcome states and onboarding.",
+        "heading-3": "Default page title for core product pages. Establishes the main context of a screen within the app.",
+        "heading-4": "Default card title on product pages. Used to label content sections and data groups for quick visual scanning.",
+        "heading-5": "Default title for overlays and guided experiences such as modals, popups, and side panels. Frames the intent of the user flow.",
+        "heading-6": "Section or group title within dense interfaces. Used to separate clusters of related elements and reinforce visual hierarchy for scannability.",
+        "body": "Primary text style for standard UI content. Used across most components for labels, descriptions, and general reading.",
+        "body-sm": "Supporting text for secondary information. Used for helper text, captions, metadata, and components with limited space.",
+        "body-lg": "Emphasized body text for content that requires attention. Used for highlights, callouts, and important inline messages."
+    };
+
     return (
         <div className="space-y-12">
             {sortedGroupedSteps.map(([category, categorySteps]) => (
@@ -872,35 +877,54 @@ function HeadingPreview({ steps, config }: { steps: any[], config: FluidTypeConf
                         </div>
                     )}
                     {(categorySteps as typeof sortedSteps).map((step: any, i: number) => (
-                        <div key={step.name} className="group relative">
-                            <div className="flex flex-col gap-2">
-                                 <div className="flex items-baseline gap-3 text-xs font-mono select-none text-gray-600">
-                                     <span className="uppercase tracking-wider font-bold transition-colors group-hover:text-[oklch(70.5%_0.213_47.604)]">{step.name}</span>
-                                     <span>•</span>
-                                     <span>{isShadcn
-                                            ? `${(step.fontSize / config.remValue).toFixed(2)}rem`
-                                            : config.useRems 
-                                                ? `${(step.minSize / config.remValue).toFixed(2)}-${(step.maxSize / config.remValue).toFixed(2)}rem`
-                                                : `${step.minSize.toFixed(0)}-${step.maxSize.toFixed(0)}px`
-                                     }</span>
-                                 </div>
-                                 
-                                 <p 
-                                    contentEditable
-                                    suppressContentEditableWarning
-                                    className="outline-none empty:before:content-['Type_something...'] empty:before:text-gray-600"
-                                    style={{ 
-                                        fontSize: step.clamp,
-                                        maxWidth: '25ch',
-                                        ...getHeadingStyle(step)
-                                    }}
-                                >
-                                     {i === 0 ? "The quick brown fox jumps over the lazy dog" : 
-                                      i === 1 ? "Visual hierarchy is crucial for readability" :
-                                      i === 2 ? "Fluid typography scales gracefully" :
-                                      "Almost before we knew it, we had left the ground."}
-                                </p>
+                        <div key={step.name}>
+                            <div className="group relative">
+                                <div className="flex flex-col gap-2">
+                                     <div className="flex items-baseline gap-3 text-xs font-mono select-none text-gray-600">
+                                         <span className="uppercase tracking-wider font-bold transition-colors group-hover:text-[oklch(70.5%_0.213_47.604)]">{step.name}</span>
+                                         <span>•</span>
+                                         <span>{isShadcn
+                                                ? `${(step.fontSize / config.remValue).toFixed(2)}rem`
+                                                : config.useRems 
+                                                    ? `${(step.minSize / config.remValue).toFixed(2)}-${(step.maxSize / config.remValue).toFixed(2)}rem`
+                                                    : `${step.minSize.toFixed(0)}-${step.maxSize.toFixed(0)}px`
+                                         }</span>
+                                     </div>
+                                     
+                                    {styleDescriptions[step.name] && (
+                                        <p 
+                                            className="text-gray-600 font-mono"
+                                            style={{ 
+                                                fontSize: '11px',
+                                                lineHeight: '1.5',
+                                                opacity: 0.9
+                                            }}
+                                        >
+                                            {styleDescriptions[step.name]}
+                                        </p>
+                                    )}
+                                     
+                                     <p 
+                                        contentEditable
+                                        suppressContentEditableWarning
+                                        className="outline-none empty:before:content-['Type_something...'] empty:before:text-gray-600"
+                                        style={{ 
+                                            fontSize: step.clamp,
+                                            maxWidth: '25ch',
+                                            marginTop: '12px',
+                                            ...getHeadingStyle(step)
+                                        }}
+                                    >
+                                         {i === 0 ? "The quick brown fox jumps over the lazy dog" : 
+                                          i === 1 ? "Visual hierarchy is crucial for readability" :
+                                          i === 2 ? "Fluid typography scales gracefully" :
+                                          "Almost before we knew it, we had left the ground."}
+                                    </p>
+                                </div>
                             </div>
+                            {i < categorySteps.length - 1 && (
+                                <div className="h-px my-8" style={{ backgroundColor: 'rgba(0, 0, 0, 0.1)' }} />
+                            )}
                         </div>
                     ))}
                 </div>

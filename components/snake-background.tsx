@@ -248,9 +248,10 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle }: Snak
           snakeRef.current = [...snake];
           foodRef.current = { ...food };
         } else {
-          // Check self collision
+          // Check self collision (exclude tail since it will move forward)
           const currentSnake = snakeRef.current.length > 0 ? snakeRef.current : snake;
-          if (currentSnake.some(segment => segment.x === newHead.x && segment.y === newHead.y)) {
+          const bodyWithoutTail = currentSnake.slice(0, -1); // Exclude tail
+          if (bodyWithoutTail.some(segment => segment.x === newHead.x && segment.y === newHead.y)) {
             // Reset game
             snake = [{ x: Math.floor(cols / 2), y: Math.floor(rows / 2) }];
             direction = { x: 1, y: 0 };
@@ -511,21 +512,17 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle }: Snak
     <>
       {/* Toggle - Always Visible */}
       <div className="absolute top-4 right-4 z-50">
-        <div className="relative rounded-2xl flex flex-col transition-all bg-white/80 backdrop-blur-xl focus-visible:ring-0" style={{ boxShadow: "rgba(50, 50, 93, 0.15) 0px 2px 5px -1px, rgba(0, 0, 0, 0.2) 0px 1px 3px -1px" }}>
-          <div className="px-3 py-2 overflow-hidden rounded-2xl">
-            <div className="flex items-center gap-2">
-              <Switch
-                id="crab-toggle"
-                checked={enabled}
-                onCheckedChange={onToggle}
-                className="[&[data-state=checked]]:!bg-[oklch(64.6%_0.222_41.116)]"
-              />
-              <Label htmlFor="crab-toggle" className="text-sm font-medium text-gray-600 cursor-pointer whitespace-nowrap font-title flex items-center gap-1" style={{ fontSize: '13px' }}>
-                <span>🦀</span>
-                <span className="hidden lg:inline">Hungry crab</span>
-              </Label>
-            </div>
-          </div>
+        <div className="flex items-center gap-2">
+          <Switch
+            id="crab-toggle"
+            checked={enabled}
+            onCheckedChange={onToggle}
+            className="[&[data-state=checked]]:!bg-[oklch(64.6%_0.222_41.116)]"
+          />
+          <Label htmlFor="crab-toggle" className="text-sm font-medium text-gray-600 cursor-pointer whitespace-nowrap font-title flex items-center gap-1" style={{ fontSize: '12px' }}>
+            <span>🦀</span>
+            <span className="hidden lg:inline">Hungry crab</span>
+          </Label>
         </div>
       </div>
 
