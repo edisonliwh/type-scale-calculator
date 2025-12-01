@@ -95,7 +95,6 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle }: Snak
     ctx.scale(dpr, dpr);
     
     // Improve text rendering quality
-    ctx.textRenderingOptimization = 'optimizeQuality';
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
