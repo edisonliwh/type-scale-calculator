@@ -66,7 +66,7 @@ export function FontPicker({ value, onValueChange }: FontPickerProps) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between font-normal min-w-0"
+          className="w-full justify-between font-normal min-w-0 shadow-xs"
         >
           <span className="truncate flex-1 min-w-0 text-left">
             {value || "Select font..."}

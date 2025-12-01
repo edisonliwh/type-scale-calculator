@@ -93,13 +93,13 @@ export function DashboardPreview({ steps, config }: DashboardPreviewProps) {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="font-medium" style={getStyle("body-sm")}>
+                <CardTitle className="font-medium" style={getStyle("heading-6")}>
                   Total Revenue
                 </CardTitle>
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="font-bold" style={getStyle("heading-4")}>$45,231.89</div>
+                <div className="font-bold" style={getStyle("heading-3")}>$45,231.89</div>
                 <p className="text-muted-foreground" style={getStyle("body-sm")}>
                   +20.1% from last month
                 </p>
@@ -107,13 +107,13 @@ export function DashboardPreview({ steps, config }: DashboardPreviewProps) {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="font-medium" style={getStyle("body-sm")}>
+                <CardTitle className="font-medium" style={getStyle("heading-6")}>
                   Subscriptions
                 </CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="font-bold" style={getStyle("heading-4")}>+2350</div>
+                <div className="font-bold" style={getStyle("heading-3")}>+2350</div>
                 <p className="text-muted-foreground" style={getStyle("body-sm")}>
                   +180.1% from last month
                 </p>
@@ -121,13 +121,13 @@ export function DashboardPreview({ steps, config }: DashboardPreviewProps) {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="font-medium" style={getStyle("body-sm")}>
+                <CardTitle className="font-medium" style={getStyle("heading-6")}>
                   Sales
                 </CardTitle>
                 <CreditCard className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="font-bold" style={getStyle("heading-4")}>+12,234</div>
+                <div className="font-bold" style={getStyle("heading-3")}>+12,234</div>
                 <p className="text-muted-foreground" style={getStyle("body-sm")}>
                   +19% from last month
                 </p>
@@ -135,13 +135,13 @@ export function DashboardPreview({ steps, config }: DashboardPreviewProps) {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="font-medium" style={getStyle("body-sm")}>
+                <CardTitle className="font-medium" style={getStyle("heading-6")}>
                   Active Now
                 </CardTitle>
                 <Activity className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="font-bold" style={getStyle("heading-4")}>+573</div>
+                <div className="font-bold" style={getStyle("heading-3")}>+573</div>
                 <p className="text-muted-foreground" style={getStyle("body-sm")}>
                   +201 since last hour
                 </p>

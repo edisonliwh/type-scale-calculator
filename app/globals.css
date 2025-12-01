@@ -123,19 +123,45 @@
   font-display: swap;
 }
 
+@keyframes fadeOutUp {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -100%);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -150%);
+  }
+}
+
+@keyframes titleSwitch {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-title-switch {
+  animation: titleSwitch 0.4s ease-out;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    /* Background is set in utilities layer for Figjam grid */
   }
   
   /* Apply Departure Mono to all headings and titles */
   h1, h2, h3, h4, h5, h6,
   [class*="title"],
   [class*="Title"],
-  [data-slot="card-title"],
   .font-title {
     font-family: 'Departure Mono', monospace;
     color: oklch(50.58% .2886 264.84);
@@ -166,24 +192,45 @@
   .type-scale-char {
     display: inline-block;
     opacity: 0;
-    transform: translateY(8px);
-    animation: typeScaleFadeIn 0.4s ease-out forwards;
+    transform: translateY(10px);
+    animation: typeScaleFadeIn 0.2s ease-out forwards;
   }
 
   @keyframes typeScaleFadeIn {
-    to {
+    0% {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    100% {
       opacity: 1;
       transform: translateY(0);
     }
   }
 
-  /* Figjam Canvas Background */
+  /* Figjam Canvas Background - Grid Pattern */
   .canvas-background {
     background-color: #f7f7f5;
     background-image: 
       linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
       linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
-    background-size: 20px 20px;
+    background-size: 30px 30px;
     background-position: 0 0, 0 0;
   }
+
+  /* Figjam Canvas Background - Dots Pattern on whole page background */
+  body.dots-pattern::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #e9e9e9;
+    opacity: 0.4;
+    background-image: radial-gradient(#808080 0.8px, #e9e9e9 0.8px);
+    background-size: 16px 16px;
+    z-index: -1;
+    pointer-events: none;
+  }
+
 }

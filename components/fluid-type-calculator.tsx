@@ -39,6 +39,7 @@ import { cn } from "@/lib/utils";
 import { ExamplesPreview } from "@/components/previews/examples-preview";
 import { DashboardPreview } from "@/components/previews/dashboard-preview";
 import { TasksPreview } from "@/components/previews/tasks-preview";
+import { SnakeBackground } from "@/components/snake-background";
 
 // ... existing code ...
 
@@ -79,7 +80,7 @@ const defaultConfig: FluidTypeConfig = {
   fontWeight: 400,
   lineHeight: 1.5,
   letterSpacing: 0,
-  color: "oklch(21.6% 0.006 56.043)",
+  color: "#2d2d2d", // Converted from oklch(21.6% 0.006 56.043)
   backgroundColor: "#ffffff",
 
   // Heading Font Settings
@@ -131,6 +132,8 @@ const STEP_NAME_MAP: Record<string, string> = {
 export function FluidTypeCalculator() {
   const [config, setConfig] = useState<FluidTypeConfig>(defaultConfig);
   const [isCopied, setIsCopied] = useState(false);
+  const [crabEnabled, setCrabEnabled] = useState(false);
+  const mainContentRef = React.useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     loadGoogleFont(config.fontFamily);
@@ -138,6 +141,18 @@ export function FluidTypeCalculator() {
         loadGoogleFont(config.headingFontFamily);
     }
   }, [config.fontFamily, config.headingFontFamily]);
+
+  // Toggle dots pattern on body when crab is enabled
+  useEffect(() => {
+    if (crabEnabled) {
+      document.body.classList.add('dots-pattern');
+    } else {
+      document.body.classList.remove('dots-pattern');
+    }
+    return () => {
+      document.body.classList.remove('dots-pattern');
+    };
+  }, [crabEnabled]);
 
   // Calculate steps - use Shadcn styles if selected, otherwise use fluid calculation
   const steps = useMemo(() => {
@@ -196,24 +211,38 @@ export function FluidTypeCalculator() {
   };
 
   return (
-    <div className="relative flex flex-col h-screen font-sans text-foreground overflow-hidden canvas-background">
+    <div 
+      className={cn(
+        "relative flex flex-col h-screen font-sans text-foreground overflow-hidden",
+        !crabEnabled && "canvas-background"
+      )}
+      style={{
+        backgroundColor: crabEnabled 
+          ? 'oklch(98% 0.016 73.684 / 0.5)' 
+          : 'oklch(98.5% 0.001 106.423 / 0.5)'
+      }}
+    >
+      {/* Snake game will be rendered inside the main content area */}
       <div className="flex flex-col lg:flex-row flex-1 p-3 gap-3 min-h-0">
       {/* View Switcher - Stamp Style - Right Edge of Sidebar (Outside) */}
       <div className="absolute left-[310px] top-[84px] z-20 flex flex-col hidden lg:flex">
           <button
               onClick={() => handleInputChange('previewMode', 'blog')}
               className={cn(
-                  "relative border rounded-tr-sm transition-all cursor-pointer flex items-center justify-center group",
+                  "relative rounded-tr-sm transition-all cursor-pointer flex items-center justify-center group",
                   config.previewMode === 'blog'
-                      ? "border-orange-300 z-10 rounded-br-sm backdrop-blur-sm"
-                      : "border-orange-200 border-dashed z-0 rounded-br-0"
+                      ? "z-10 rounded-br-sm backdrop-blur-sm"
+                      : "z-0 rounded-br-0"
               )}
               style={{
                   width: '40px',
-                  height: '90px',
+                  height: '110px',
+                  border: '1px solid',
+                  borderColor: 'rgba(0, 0, 0, 0.15)',
+                  borderStyle: config.previewMode === 'blog' ? 'solid' : 'dashed',
                   backgroundColor: config.previewMode === 'blog' 
-                      ? 'rgba(255, 237, 213, 0.9)' // orange-50 with 90% opacity when active
-                      : 'rgba(255, 237, 213, 0.6)', // orange-50 with 60% opacity when inactive
+                      ? 'rgba(247, 254, 231, 0.9)' // lime-50 with 90% opacity when active
+                      : 'rgba(247, 254, 231, 0.6)', // lime-50 with 60% opacity when inactive
                   boxShadow: config.previewMode === 'blog' 
                       ? "rgba(0, 0, 0, 0.1) 0px 2px 8px 0px, rgba(0, 0, 0, 0.05) 0px 1px 3px 0px"
                       : "rgba(0, 0, 0, 0.05) 0px 1px 3px 0px"
@@ -221,7 +250,7 @@ export function FluidTypeCalculator() {
           >
               <span className={cn(
                   "font-title font-bold text-xs uppercase tracking-wider transform rotate-90 whitespace-nowrap",
-                  config.previewMode === 'blog' ? "text-orange-700" : "text-orange-600"
+                  config.previewMode === 'blog' ? "text-lime-700" : "text-lime-600"
               )}>
                   TYPE
               </span>
@@ -229,17 +258,20 @@ export function FluidTypeCalculator() {
           <button
               onClick={() => handleInputChange('previewMode', 'landing')}
               className={cn(
-                  "relative border rounded-br-sm transition-all cursor-pointer flex items-center justify-center group -mt-[2px]",
+                  "relative rounded-br-sm transition-all cursor-pointer flex items-center justify-center group -mt-[3px]",
                   config.previewMode === 'landing'
-                      ? "border-purple-300 z-10 rounded-tr-sm backdrop-blur-sm"
-                      : "border-purple-200 border-dashed z-0 rounded-tr-0"
+                      ? "z-10 rounded-tr-sm backdrop-blur-sm"
+                      : "z-0 rounded-tr-0"
               )}
               style={{
                   width: '40px',
-                  height: '90px',
+                  height: '110px',
+                  border: '1px solid',
+                  borderColor: 'rgba(0, 0, 0, 0.15)',
+                  borderStyle: config.previewMode === 'landing' ? 'solid' : 'dashed',
                   backgroundColor: config.previewMode === 'landing' 
-                      ? 'rgba(250, 245, 255, 0.9)' // purple-50 with 90% opacity when active
-                      : 'rgba(250, 245, 255, 0.6)', // purple-50 with 60% opacity when inactive
+                      ? 'rgba(238, 242, 255, 0.9)' // indigo-50 with 90% opacity when active
+                      : 'rgba(238, 242, 255, 0.6)', // indigo-50 with 60% opacity when inactive
                   boxShadow: config.previewMode === 'landing' 
                       ? "rgba(0, 0, 0, 0.1) 0px 2px 8px 0px, rgba(0, 0, 0, 0.05) 0px 1px 3px 0px"
                       : "rgba(0, 0, 0, 0.05) 0px 1px 3px 0px"
@@ -247,7 +279,7 @@ export function FluidTypeCalculator() {
           >
               <span className={cn(
                   "font-title font-bold text-xs uppercase tracking-wider transform rotate-90 whitespace-nowrap",
-                  config.previewMode === 'landing' ? "text-purple-700" : "text-purple-600"
+                  config.previewMode === 'landing' ? "text-indigo-700" : "text-indigo-600"
               )}>
                   PREVIEW
               </span>
@@ -262,9 +294,9 @@ export function FluidTypeCalculator() {
              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-sm">
                 <Type className="w-5 h-5" />
              </div>
-             <span className="font-semibold text-base text-gray-900 font-title type-scale-animated">
+             <span className="font-semibold text-base text-gray-900 font-title type-scale-animated" style={{ textShadow: 'rgba(0, 0, 0, 0.25) 0px 5px 15px' }}>
                  {"TYPE SCALE".split("").map((char, i) => (
-                     <span key={i} className="type-scale-char" style={{ animationDelay: `${i * 0.05}s` }}>
+                     <span key={`${config.previewMode}-${i}`} className="type-scale-char" style={{ animationDelay: `${i * 0.03}s` }}>
                          {char === " " ? "\u00A0" : char}
                      </span>
                  ))}
@@ -473,7 +505,7 @@ export function FluidTypeCalculator() {
                  <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
                     <Label className="text-sm font-medium text-gray-700 w-[100px] shrink-0">Color</Label>
                     <div className="flex gap-2 h-9 flex-1 min-w-0">
-                        <div className="w-full relative bg-white border border-gray-200 rounded-md overflow-hidden flex items-center px-2 min-w-0">
+                        <div className="w-full relative bg-white border border-gray-200 rounded-md overflow-hidden flex items-center px-2 min-w-0 shadow-xs">
                              <span className="text-xs font-mono truncate flex-1 text-gray-600 min-w-0">{config.color}</span>
                              <div className="w-5 h-5 border rounded-full overflow-hidden shrink-0 ml-2 relative shadow-inner">
                                 <input 
@@ -491,7 +523,7 @@ export function FluidTypeCalculator() {
                  <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
                     <Label className="text-sm font-medium text-gray-700 w-[100px] shrink-0">Background</Label>
                      <div className="flex gap-2 h-9 flex-1 min-w-0">
-                        <div className="w-full relative bg-white border border-gray-200 rounded-md overflow-hidden flex items-center px-2 min-w-0">
+                        <div className="w-full relative bg-white border border-gray-200 rounded-md overflow-hidden flex items-center px-2 min-w-0 shadow-xs">
                              <span className="text-xs font-mono truncate flex-1 text-gray-600 min-w-0">{config.backgroundColor}</span>
                              <div className="w-5 h-5 border rounded-full overflow-hidden shrink-0 ml-2 relative shadow-inner">
                                 <input 
@@ -582,7 +614,7 @@ export function FluidTypeCalculator() {
                  <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
                     <Label className="text-sm text-gray-600 w-[100px] shrink-0">Color</Label>
                     <div className="flex gap-2 h-9 flex-1 min-w-0">
-                        <div className="w-full relative bg-white border border-gray-200 rounded-md overflow-hidden flex items-center px-2 min-w-0">
+                        <div className="w-full relative bg-white border border-gray-200 rounded-md overflow-hidden flex items-center px-2 min-w-0 shadow-xs">
                              <span className="text-xs font-mono truncate flex-1 text-gray-600 min-w-0">
                                  {config.headingColor === 'inherit' ? 'inherit' : config.headingColor}
                              </span>
@@ -605,7 +637,9 @@ export function FluidTypeCalculator() {
       </aside>
 
       {/* RIGHT MAIN: PREVIEW */}
-      <main className="flex-1 flex flex-col h-full overflow-hidden relative">
+      <main ref={mainContentRef} className="flex-1 flex flex-col h-full overflow-hidden relative">
+        {/* Snake Background - Only in main content area */}
+        <SnakeBackground containerRef={mainContentRef} enabled={crabEnabled} onToggle={setCrabEnabled} />
          {/* Content Area */}
          <div className="flex-1 relative z-10 flex flex-col h-full w-full min-h-0">
              
@@ -634,10 +668,10 @@ export function FluidTypeCalculator() {
                                 <div className="px-6 mb-8">
                                     <div className="flex items-center justify-between space-y-2">
                                         <TabsList className="bg-transparent p-0 gap-6">
-                                            <TabsTrigger value="examples" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title">Examples</TabsTrigger>
-                                            <TabsTrigger value="dashboard" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title">Dashboard</TabsTrigger>
-                                            <TabsTrigger value="tasks" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title">Tasks</TabsTrigger>
-                                            <TabsTrigger value="landing" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title">Landing</TabsTrigger>
+                                            <TabsTrigger value="examples" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title" style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}>Cards</TabsTrigger>
+                                            <TabsTrigger value="dashboard" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title" style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}>Dashboard</TabsTrigger>
+                                            <TabsTrigger value="tasks" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title" style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}>Tasks</TabsTrigger>
+                                            <TabsTrigger value="landing" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title" style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}>Landing</TabsTrigger>
                                         </TabsList>
                                     </div>
                                 </div>
@@ -826,17 +860,14 @@ function HeadingPreview({ steps, config }: { steps: any[], config: FluidTypeConf
                             <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'oklch(70.8% 0 0)' }}>
                                 {categoryLabels[category]}
                             </h3>
-                            <div className="flex-1 h-px" style={{ backgroundColor: 'oklch(87% 0 0)' }} />
+                            <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(0, 0, 0, 0.1)' }} />
                         </div>
                     )}
                     {(categorySteps as typeof sortedSteps).map((step: any, i: number) => (
                         <div key={step.name} className="group relative">
-                            {/* Visual Bar Indicator */}
-                            <div className="absolute -left-6 lg:-left-12 top-2 bottom-2 w-1 rounded-full bg-gray-100 group-hover:bg-gray-200 transition-colors" />
-                            
                             <div className="flex flex-col gap-2">
                                  <div className="flex items-baseline gap-3 text-xs font-mono select-none text-gray-600">
-                                     <span className="uppercase tracking-wider font-bold">{step.name}</span>
+                                     <span className="uppercase tracking-wider font-bold transition-colors group-hover:text-[oklch(70.5%_0.213_47.604)]">{step.name}</span>
                                      <span>•</span>
                                      <span>{isShadcn
                                             ? `${(step.fontSize / config.remValue).toFixed(2)}rem`
@@ -871,21 +902,44 @@ function HeadingPreview({ steps, config }: { steps: any[], config: FluidTypeConf
 }
 
 function LandingPreview({ steps, config }: { steps: any[], config: FluidTypeConfig }) {
+    const isShadcn = config.maxRatio === "shadcn" || config.minRatio === "shadcn";
+    
     const getStyle = (stepName: string) => {
-        const step = steps.find(s => s.name === stepName);
-        const isBody = stepName === 'base' || stepName === 'sm' || stepName === 'md' || stepName === 'lg';
-        
-        const headingStyle = isBody ? {} : {
-            fontFamily: config.headingFontFamily === 'inherit' ? 'inherit' : `"${config.headingFontFamily}", sans-serif`,
-            fontWeight: config.headingFontWeight,
-            lineHeight: config.headingLineHeight,
-            letterSpacing: `${config.headingLetterSpacing}em`,
-            color: config.headingColor === 'inherit' ? 'inherit' : config.headingColor,
-        };
+        const mappedStepName = isShadcn && STEP_NAME_MAP[stepName] ? STEP_NAME_MAP[stepName] : stepName;
+        const step = steps.find(s => s.name === mappedStepName);
+        if (!step) return {};
 
-        return { 
+        if (isShadcn && step.fontSize) {
+            const isBody = step.category === "body";
+            return {
+                fontSize: `${step.fontSize}px`,
+                fontWeight: step.fontWeight || config.fontWeight,
+                lineHeight: step.lineHeight || config.lineHeight,
+                letterSpacing: `${step.letterSpacing || 0}em`,
+                ...(isBody ? {} : {
+                    fontFamily: config.headingFontFamily === "inherit" ? "inherit" : `"${config.headingFontFamily}", sans-serif`,
+                    color: config.headingColor === "inherit" ? "inherit" : config.headingColor,
+                }),
+            };
+        }
+        
+        const isBody = ["body-sm", "body", "body-lg"].includes(stepName);
+        const headingStyle = isBody
+            ? {}
+            : {
+                fontFamily:
+                    config.headingFontFamily === "inherit"
+                        ? "inherit"
+                        : `"${config.headingFontFamily}", sans-serif`,
+                fontWeight: config.headingFontWeight,
+                lineHeight: config.headingLineHeight,
+                letterSpacing: `${config.headingLetterSpacing}em`,
+                color: config.headingColor === "inherit" ? "inherit" : config.headingColor,
+            };
+
+        return {
             fontSize: step?.clamp,
-            ...headingStyle
+            ...headingStyle,
         };
     };
 
@@ -896,7 +950,7 @@ function LandingPreview({ steps, config }: { steps: any[], config: FluidTypeConf
                  <h1 style={{ ...getStyle('heading-1'), fontWeight: config.headingFontWeight }}>
                      Typography that adapts to every device.
                  </h1>
-                 <p style={{ ...getStyle('heading-5'), maxWidth: '45ch', opacity: 0.8 }}>
+                 <p style={{ ...getStyle('body-lg'), maxWidth: '45ch', opacity: 0.8 }}>
                      Create beautiful, responsive type scales that work seamlessly across mobile, tablet, and desktop screens without a single media query.
                  </p>
                  <div className="flex gap-4 pt-4">
@@ -915,7 +969,7 @@ function LandingPreview({ steps, config }: { steps: any[], config: FluidTypeConf
                         <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mb-6">
                              <feature.icon className="w-6 h-6 text-gray-900" />
                          </div>
-                         <h3 style={getStyle('heading-4')}>{feature.title}</h3>
+                         <h3 style={getStyle('heading-5')}>{feature.title}</h3>
                          <p style={getStyle('body')} className="text-gray-600 leading-relaxed">
                              {feature.text}
                          </p>
@@ -926,18 +980,18 @@ function LandingPreview({ steps, config }: { steps: any[], config: FluidTypeConf
              <section className="border-t border-gray-200/50 pt-24">
                  <div className="grid md:grid-cols-2 gap-16">
                      <div className="space-y-6">
-                         <h2 style={getStyle('heading-3')}>Stop fighting with breakpoints</h2>
+                         <h2 style={getStyle('heading-2')}>Stop fighting with breakpoints</h2>
                          <p style={getStyle('body')} className="text-gray-600 leading-relaxed">
                              Traditional responsive typography requires manually setting font sizes at multiple breakpoints. This is tedious and often results in "jumpy" resizing. Fluid typography uses mathematical interpolation to scale smoothly.
                          </p>
-                         <ul className="space-y-3 pt-4" style={getStyle('body')}>
+                         <ul className="space-y-3 pt-4">
                              {[
                                  "Smooth scaling between viewports",
                                  "No complex media queries",
                                  "Accessible and user-friendly",
                                  "Works with any design system"
                              ].map(item => (
-                                 <li key={item} className="flex items-center gap-3">
+                                 <li key={item} className="flex items-center gap-3" style={getStyle('body-sm')}>
                                      <Check className="w-5 h-5 text-green-600 shrink-0" />
                                      <span className="text-gray-700">{item}</span>
                                  </li>
@@ -949,6 +1003,6 @@ function LandingPreview({ steps, config }: { steps: any[], config: FluidTypeConf
                      </div>
                  </div>
              </section>
-        </div>
+         </div>
     );
 }
