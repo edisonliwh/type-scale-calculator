@@ -304,14 +304,17 @@ export function FluidTypeCalculator() {
              <div className="grid gap-3">
                 <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
                     <Label className="text-sm font-medium text-gray-700 w-[100px] shrink-0">Font-size</Label>
-                    <div className="relative flex-1 min-w-0">
-                        <Input 
-                            type="number" 
-                            value={config.maxFontSize}
-                            onChange={(e) => handleInputChange("maxFontSize", Number(e.target.value))}
-                            className="bg-white border-gray-200 pr-8 h-9 focus-visible:ring-gray-400 w-full"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-600 font-medium">px</span>
+                    <div className="flex-1 min-w-0">
+                        <div className="relative flex-1 min-w-0">
+                            <Input 
+                                type="number" 
+                                value={config.maxFontSize}
+                                onChange={(e) => handleInputChange("maxFontSize", Number(e.target.value))}
+                                className="bg-white border-gray-200 pr-8 h-9 focus-visible:ring-gray-400 w-full"
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-600 font-medium">px</span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">1rem = {config.remValue}px • {config.maxFontSize}px = {(config.maxFontSize / config.remValue).toFixed(2)}rem</p>
                     </div>
                 </div>
 
@@ -884,10 +887,10 @@ function HeadingPreview({ steps, config }: { steps: any[], config: FluidTypeConf
                                          <span className="uppercase tracking-wider font-bold transition-colors group-hover:text-[oklch(70.5%_0.213_47.604)]">{step.name}</span>
                                          <span>•</span>
                                          <span>{isShadcn
-                                                ? `${(step.fontSize / config.remValue).toFixed(2)}rem`
+                                                ? `${(step.fontSize / config.remValue).toFixed(2)}rem / ${step.fontSize.toFixed(2)}px`
                                                 : config.useRems 
-                                                    ? `${(step.minSize / config.remValue).toFixed(2)}-${(step.maxSize / config.remValue).toFixed(2)}rem`
-                                                    : `${step.minSize.toFixed(0)}-${step.maxSize.toFixed(0)}px`
+                                                    ? `${(step.maxSize / config.remValue).toFixed(2)}-${(step.minSize / config.remValue).toFixed(2)}rem / ${step.maxSize.toFixed(2)}-${step.minSize.toFixed(2)}px`
+                                                    : `${step.maxSize.toFixed(0)}-${step.minSize.toFixed(0)}px`
                                          }</span>
                                      </div>
                                      
