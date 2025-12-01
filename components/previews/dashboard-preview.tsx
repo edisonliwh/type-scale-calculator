@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Activity, CreditCard, DollarSign, Users, ArrowUpRight } from "lucide-react";
+import { StyleMappings } from "@/components/style-mapping-panel";
 
 // Step name mapping for preview components (old names -> new names)
 const STEP_NAME_MAP: Record<string, string> = {
@@ -22,9 +23,14 @@ const STEP_NAME_MAP: Record<string, string> = {
 interface DashboardPreviewProps {
   steps: any[];
   config: FluidTypeConfig;
+  styleMappings?: StyleMappings;
 }
 
-export function DashboardPreview({ steps, config }: DashboardPreviewProps) {
+export function DashboardPreview({ steps, config, styleMappings = {} }: DashboardPreviewProps) {
+  // Helper to get step name for an element, using mapping or default
+  const getStepName = (elementId: string, defaultStep: string) => {
+    return (styleMappings[elementId as keyof StyleMappings] as string) || defaultStep;
+  };
   const getStyle = (stepName: string) => {
     const isShadcn = config.maxRatio === "shadcn" || config.minRatio === "shadcn";
     // Map old step names to Shadcn names if using Shadcn
@@ -166,93 +172,93 @@ export function DashboardPreview({ steps, config }: DashboardPreviewProps) {
     <TooltipProvider delayDuration={0} skipDelayDuration={0}>
       <div className="flex-1 space-y-4 px-8 py-2">
         <div className="flex items-center justify-between space-y-2">
-          <TextWithTooltip stepName="heading-3" as="h2" className="font-bold tracking-tight font-title" style={getStyle("heading-3")}>
+          <TextWithTooltip stepName={getStepName("dashboard-title", "heading-3")} as="h2" className="font-bold tracking-tight font-title" style={getStyle(getStepName("dashboard-title", "heading-3"))}>
             Dashboard
           </TextWithTooltip>
           <div className="flex items-center space-x-2">
-            <Button style={getStyle("body-sm")}>
-              <TextWithTooltip stepName="body-sm">Download</TextWithTooltip>
+            <Button style={getStyle(getStepName("dashboard-download-btn", "body-sm"))}>
+              <TextWithTooltip stepName={getStepName("dashboard-download-btn", "body-sm")}>Download</TextWithTooltip>
             </Button>
           </div>
         </div>
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview" style={getStyle("body-sm")}>
-            <TextWithTooltip stepName="body-sm">Overview</TextWithTooltip>
+          <TabsTrigger value="overview" style={getStyle(getStepName("dashboard-tabs", "body-sm"))}>
+            <TextWithTooltip stepName={getStepName("dashboard-tabs", "body-sm")}>Overview</TextWithTooltip>
           </TabsTrigger>
-          <TabsTrigger value="analytics" disabled style={getStyle("body-sm")}>
-            <TextWithTooltip stepName="body-sm">Analytics</TextWithTooltip>
+          <TabsTrigger value="analytics" disabled style={getStyle(getStepName("dashboard-tabs", "body-sm"))}>
+            <TextWithTooltip stepName={getStepName("dashboard-tabs", "body-sm")}>Analytics</TextWithTooltip>
           </TabsTrigger>
-          <TabsTrigger value="reports" disabled style={getStyle("body-sm")}>
-            <TextWithTooltip stepName="body-sm">Reports</TextWithTooltip>
+          <TabsTrigger value="reports" disabled style={getStyle(getStepName("dashboard-tabs", "body-sm"))}>
+            <TextWithTooltip stepName={getStepName("dashboard-tabs", "body-sm")}>Reports</TextWithTooltip>
           </TabsTrigger>
-          <TabsTrigger value="notifications" disabled style={getStyle("body-sm")}>
-            <TextWithTooltip stepName="body-sm">Notifications</TextWithTooltip>
+          <TabsTrigger value="notifications" disabled style={getStyle(getStepName("dashboard-tabs", "body-sm"))}>
+            <TextWithTooltip stepName={getStepName("dashboard-tabs", "body-sm")}>Notifications</TextWithTooltip>
           </TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card className="shadow-none">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitleWithTooltip stepName="heading-6" className="font-medium" style={getStyle("heading-6")}>
+                <CardTitleWithTooltip stepName={getStepName("dashboard-card-title", "heading-6")} className="font-medium" style={getStyle(getStepName("dashboard-card-title", "heading-6"))}>
                   Total Revenue
                 </CardTitleWithTooltip>
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <TextWithTooltip stepName="heading-3" as="div" className="font-bold" style={getStyle("heading-3")}>
+                <TextWithTooltip stepName={getStepName("dashboard-card-value", "heading-3")} as="div" className="font-bold" style={getStyle(getStepName("dashboard-card-value", "heading-3"))}>
                   $45,231.89
                 </TextWithTooltip>
-                <p className="text-muted-foreground" style={getStyle("body-sm")}>
-                  <TextWithTooltip stepName="body-sm">+20.1% from last month</TextWithTooltip>
+                <p className="text-muted-foreground" style={getStyle(getStepName("dashboard-card-description", "body-sm"))}>
+                  <TextWithTooltip stepName={getStepName("dashboard-card-description", "body-sm")}>+20.1% from last month</TextWithTooltip>
                 </p>
               </CardContent>
             </Card>
             <Card className="shadow-none">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitleWithTooltip stepName="heading-6" className="font-medium" style={getStyle("heading-6")}>
+                <CardTitleWithTooltip stepName={getStepName("dashboard-card-title", "heading-6")} className="font-medium" style={getStyle(getStepName("dashboard-card-title", "heading-6"))}>
                   Subscriptions
                 </CardTitleWithTooltip>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <TextWithTooltip stepName="heading-3" as="div" className="font-bold" style={getStyle("heading-3")}>
+                <TextWithTooltip stepName={getStepName("dashboard-card-value", "heading-3")} as="div" className="font-bold" style={getStyle(getStepName("dashboard-card-value", "heading-3"))}>
                   +2350
                 </TextWithTooltip>
-                <p className="text-muted-foreground" style={getStyle("body-sm")}>
-                  <TextWithTooltip stepName="body-sm">+180.1% from last month</TextWithTooltip>
+                <p className="text-muted-foreground" style={getStyle(getStepName("dashboard-card-description", "body-sm"))}>
+                  <TextWithTooltip stepName={getStepName("dashboard-card-description", "body-sm")}>+180.1% from last month</TextWithTooltip>
                 </p>
               </CardContent>
             </Card>
             <Card className="shadow-none">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitleWithTooltip stepName="heading-6" className="font-medium" style={getStyle("heading-6")}>
+                <CardTitleWithTooltip stepName={getStepName("dashboard-card-title", "heading-6")} className="font-medium" style={getStyle(getStepName("dashboard-card-title", "heading-6"))}>
                   Sales
                 </CardTitleWithTooltip>
                 <CreditCard className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <TextWithTooltip stepName="heading-3" as="div" className="font-bold" style={getStyle("heading-3")}>
+                <TextWithTooltip stepName={getStepName("dashboard-card-value", "heading-3")} as="div" className="font-bold" style={getStyle(getStepName("dashboard-card-value", "heading-3"))}>
                   +12,234
                 </TextWithTooltip>
-                <p className="text-muted-foreground" style={getStyle("body-sm")}>
-                  <TextWithTooltip stepName="body-sm">+19% from last month</TextWithTooltip>
+                <p className="text-muted-foreground" style={getStyle(getStepName("dashboard-card-description", "body-sm"))}>
+                  <TextWithTooltip stepName={getStepName("dashboard-card-description", "body-sm")}>+19% from last month</TextWithTooltip>
                 </p>
               </CardContent>
             </Card>
             <Card className="shadow-none">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitleWithTooltip stepName="heading-6" className="font-medium" style={getStyle("heading-6")}>
+                <CardTitleWithTooltip stepName={getStepName("dashboard-card-title", "heading-6")} className="font-medium" style={getStyle(getStepName("dashboard-card-title", "heading-6"))}>
                   Active Now
                 </CardTitleWithTooltip>
                 <Activity className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <TextWithTooltip stepName="heading-3" as="div" className="font-bold" style={getStyle("heading-3")}>
+                <TextWithTooltip stepName={getStepName("dashboard-card-value", "heading-3")} as="div" className="font-bold" style={getStyle(getStepName("dashboard-card-value", "heading-3"))}>
                   +573
                 </TextWithTooltip>
-                <p className="text-muted-foreground" style={getStyle("body-sm")}>
-                  <TextWithTooltip stepName="body-sm">+201 since last hour</TextWithTooltip>
+                <p className="text-muted-foreground" style={getStyle(getStepName("dashboard-card-description", "body-sm"))}>
+                  <TextWithTooltip stepName={getStepName("dashboard-card-description", "body-sm")}>+201 since last hour</TextWithTooltip>
                 </p>
               </CardContent>
             </Card>
@@ -260,24 +266,24 @@ export function DashboardPreview({ steps, config }: DashboardPreviewProps) {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
             <Card className="col-span-4 shadow-none">
               <CardHeader>
-                <CardTitleWithTooltip stepName="heading-5" style={getStyle("heading-5")}>
+                <CardTitleWithTooltip stepName={getStepName("dashboard-section-title", "heading-5")} style={getStyle(getStepName("dashboard-section-title", "heading-5"))}>
                   Overview
                 </CardTitleWithTooltip>
               </CardHeader>
               <CardContent className="pl-2">
                   <div className="h-[200px] flex items-center justify-center bg-gray-50 rounded-md border border-dashed">
-                      <p className="text-muted-foreground" style={getStyle("body-sm")}>
-                        <TextWithTooltip stepName="body-sm">Chart Placeholder</TextWithTooltip>
+                      <p className="text-muted-foreground" style={getStyle(getStepName("dashboard-card-description", "body-sm"))}>
+                        <TextWithTooltip stepName={getStepName("dashboard-card-description", "body-sm")}>Chart Placeholder</TextWithTooltip>
                       </p>
                   </div>
               </CardContent>
             </Card>
             <Card className="col-span-3 shadow-none">
               <CardHeader>
-                <CardTitleWithTooltip stepName="heading-5" style={getStyle("heading-5")}>
+                <CardTitleWithTooltip stepName={getStepName("dashboard-section-title", "heading-5")} style={getStyle(getStepName("dashboard-section-title", "heading-5"))}>
                   Recent Sales
                 </CardTitleWithTooltip>
-                <CardDescriptionWithTooltip stepName="body-sm" style={getStyle("body-sm")}>
+                <CardDescriptionWithTooltip stepName={getStepName("dashboard-section-description", "body-sm")} style={getStyle(getStepName("dashboard-section-description", "body-sm"))}>
                   You made 265 sales this month.
                 </CardDescriptionWithTooltip>
               </CardHeader>
@@ -295,15 +301,15 @@ export function DashboardPreview({ steps, config }: DashboardPreviewProps) {
                                 <AvatarFallback>{sale.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                             </Avatar>
                             <div className="ml-4 space-y-1">
-                                <p className="font-medium leading-none" style={getStyle("body")}>
-                                  <TextWithTooltip stepName="body">{sale.name}</TextWithTooltip>
+                                <p className="font-medium leading-none" style={getStyle(getStepName("dashboard-table-cell", "body"))}>
+                                  <TextWithTooltip stepName={getStepName("dashboard-table-cell", "body")}>{sale.name}</TextWithTooltip>
                                 </p>
-                                <p className="text-muted-foreground" style={getStyle("body-sm")}>
-                                    <TextWithTooltip stepName="body-sm">{sale.email}</TextWithTooltip>
+                                <p className="text-muted-foreground" style={getStyle(getStepName("dashboard-table-cell", "body-sm"))}>
+                                    <TextWithTooltip stepName={getStepName("dashboard-table-cell", "body-sm")}>{sale.email}</TextWithTooltip>
                                 </p>
                             </div>
-                            <div className="ml-auto font-medium" style={getStyle("body")}>
-                              <TextWithTooltip stepName="body">{sale.amount}</TextWithTooltip>
+                            <div className="ml-auto font-medium" style={getStyle(getStepName("dashboard-table-cell", "body"))}>
+                              <TextWithTooltip stepName={getStepName("dashboard-table-cell", "body")}>{sale.amount}</TextWithTooltip>
                             </div>
                         </div>
                     ))}

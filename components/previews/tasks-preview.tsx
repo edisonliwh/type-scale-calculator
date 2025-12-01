@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { StyleMappings } from "@/components/style-mapping-panel";
 import { MoreHorizontal, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
@@ -25,9 +26,14 @@ const STEP_NAME_MAP: Record<string, string> = {
 interface TasksPreviewProps {
   steps: any[];
   config: FluidTypeConfig;
+  styleMappings?: StyleMappings;
 }
 
-export function TasksPreview({ steps, config }: TasksPreviewProps) {
+export function TasksPreview({ steps, config, styleMappings = {} }: TasksPreviewProps) {
+  // Helper to get step name for an element, using mapping or default
+  const getStepName = (elementId: string, defaultStep: string) => {
+    return (styleMappings[elementId as keyof StyleMappings] as string) || defaultStep;
+  };
   const getStyle = (stepName: string) => {
     const isShadcn = config.maxRatio === "shadcn" || config.minRatio === "shadcn";
     // Map old step names to Shadcn names if using Shadcn
@@ -126,11 +132,11 @@ export function TasksPreview({ steps, config }: TasksPreviewProps) {
       <div className="h-full flex-1 flex-col space-y-8 px-8 py-2 flex">
         <div className="flex items-center justify-between space-y-2">
           <div>
-            <h2 className="font-bold tracking-tight font-title" style={getStyle("heading-3")}>
-              <TextWithTooltip stepName="heading-3">Welcome back!</TextWithTooltip>
+            <h2 className="font-bold tracking-tight font-title" style={getStyle(getStepName("tasks-title", "heading-3"))}>
+              <TextWithTooltip stepName={getStepName("tasks-title", "heading-3")}>Welcome back!</TextWithTooltip>
             </h2>
-            <p className="text-muted-foreground" style={getStyle("body")}>
-              <TextWithTooltip stepName="body">Here&apos;s a list of your tasks for this month!</TextWithTooltip>
+            <p className="text-muted-foreground" style={getStyle(getStepName("tasks-description", "body"))}>
+              <TextWithTooltip stepName={getStepName("tasks-description", "body")}>Here&apos;s a list of your tasks for this month!</TextWithTooltip>
             </p>
           </div>
         <div className="flex items-center space-x-2">
@@ -142,22 +148,22 @@ export function TasksPreview({ steps, config }: TasksPreviewProps) {
       
       <div className="flex items-center justify-between">
         <div className="flex flex-1 items-center space-x-2">
-          <InputWithTooltip stepName="body-sm">
+          <InputWithTooltip stepName={getStepName("tasks-filter-input", "body-sm")}>
             <Input
               placeholder="Filter tasks..."
               className="h-8 w-[150px] lg:w-[250px]"
-              style={getStyle("body-sm")}
+              style={getStyle(getStepName("tasks-filter-input", "body-sm"))}
             />
           </InputWithTooltip>
-          <Button variant="outline" size="sm" className="h-8 border-dashed" style={getStyle("body-sm")}>
-            <TextWithTooltip stepName="body-sm">Status</TextWithTooltip>
+          <Button variant="outline" size="sm" className="h-8 border-dashed" style={getStyle(getStepName("tasks-filter-button", "body-sm"))}>
+            <TextWithTooltip stepName={getStepName("tasks-filter-button", "body-sm")}>Status</TextWithTooltip>
           </Button>
-          <Button variant="outline" size="sm" className="h-8 border-dashed" style={getStyle("body-sm")}>
-            <TextWithTooltip stepName="body-sm">Priority</TextWithTooltip>
+          <Button variant="outline" size="sm" className="h-8 border-dashed" style={getStyle(getStepName("tasks-filter-button", "body-sm"))}>
+            <TextWithTooltip stepName={getStepName("tasks-filter-button", "body-sm")}>Priority</TextWithTooltip>
           </Button>
         </div>
-        <Button size="sm" className="ml-auto h-8 lg:flex" style={getStyle("body-sm")}>
-          <TextWithTooltip stepName="body-sm">View</TextWithTooltip>
+        <Button size="sm" className="ml-auto h-8 lg:flex" style={getStyle(getStepName("tasks-filter-button", "body-sm"))}>
+          <TextWithTooltip stepName={getStepName("tasks-filter-button", "body-sm")}>View</TextWithTooltip>
         </Button>
       </div>
 
@@ -168,17 +174,17 @@ export function TasksPreview({ steps, config }: TasksPreviewProps) {
               <TableHead className="w-[50px]">
                   <Checkbox />
               </TableHead>
-              <TableHead className="w-[100px]" style={getStyle("body-sm")}>
-                <TextWithTooltip stepName="body-sm">Task</TextWithTooltip>
+              <TableHead className="w-[100px]" style={getStyle(getStepName("tasks-table-header", "body-sm"))}>
+                <TextWithTooltip stepName={getStepName("tasks-table-header", "body-sm")}>Task</TextWithTooltip>
               </TableHead>
-              <TableHead style={getStyle("body-sm")}>
-                <TextWithTooltip stepName="body-sm">Title</TextWithTooltip>
+              <TableHead style={getStyle(getStepName("tasks-table-header", "body-sm"))}>
+                <TextWithTooltip stepName={getStepName("tasks-table-header", "body-sm")}>Title</TextWithTooltip>
               </TableHead>
-              <TableHead style={getStyle("body-sm")}>
-                <TextWithTooltip stepName="body-sm">Status</TextWithTooltip>
+              <TableHead style={getStyle(getStepName("tasks-table-header", "body-sm"))}>
+                <TextWithTooltip stepName={getStepName("tasks-table-header", "body-sm")}>Status</TextWithTooltip>
               </TableHead>
-              <TableHead style={getStyle("body-sm")}>
-                <TextWithTooltip stepName="body-sm">Priority</TextWithTooltip>
+              <TableHead style={getStyle(getStepName("tasks-table-header", "body-sm"))}>
+                <TextWithTooltip stepName={getStepName("tasks-table-header", "body-sm")}>Priority</TextWithTooltip>
               </TableHead>
               <TableHead className="text-right"></TableHead>
             </TableRow>
@@ -189,24 +195,24 @@ export function TasksPreview({ steps, config }: TasksPreviewProps) {
                 <TableCell>
                     <Checkbox />
                 </TableCell>
-                <TableCell style={{ ...getStyle("body"), fontWeight: 400 }}>
-                  <TextWithTooltip stepName="body">{task.id}</TextWithTooltip>
+                <TableCell style={{ ...getStyle(getStepName("tasks-table-cell", "body")), fontWeight: 400 }}>
+                  <TextWithTooltip stepName={getStepName("tasks-table-cell", "body")}>{task.id}</TextWithTooltip>
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
-                    <Badge variant="outline" style={{ ...getStyle("body"), fontWeight: 400 }}>
-                      <TextWithTooltip stepName="body">{task.label}</TextWithTooltip>
+                    <Badge variant="outline" style={{ ...getStyle(getStepName("tasks-table-cell", "body")), fontWeight: 400 }}>
+                      <TextWithTooltip stepName={getStepName("tasks-table-cell", "body")}>{task.label}</TextWithTooltip>
                     </Badge>
-                    <span className="max-w-[500px] truncate" style={{ ...getStyle("body"), fontWeight: 400 }}>
-                      <TextWithTooltip stepName="body">{task.title}</TextWithTooltip>
+                    <span className="max-w-[500px] truncate" style={{ ...getStyle(getStepName("tasks-table-cell", "body")), fontWeight: 400 }}>
+                      <TextWithTooltip stepName={getStepName("tasks-table-cell", "body")}>{task.title}</TextWithTooltip>
                     </span>
                   </div>
                 </TableCell>
-                <TableCell style={{ ...getStyle("body"), fontWeight: 400 }}>
-                  <TextWithTooltip stepName="body">{task.status}</TextWithTooltip>
+                <TableCell style={{ ...getStyle(getStepName("tasks-table-cell", "body")), fontWeight: 400 }}>
+                  <TextWithTooltip stepName={getStepName("tasks-table-cell", "body")}>{task.status}</TextWithTooltip>
                 </TableCell>
-                <TableCell style={{ ...getStyle("body"), fontWeight: 400 }}>
-                  <TextWithTooltip stepName="body">{task.priority}</TextWithTooltip>
+                <TableCell style={{ ...getStyle(getStepName("tasks-table-cell", "body")), fontWeight: 400 }}>
+                  <TextWithTooltip stepName={getStepName("tasks-table-cell", "body")}>{task.priority}</TextWithTooltip>
                 </TableCell>
                 <TableCell className="text-right">
                     <DropdownMenu>
@@ -232,11 +238,11 @@ export function TasksPreview({ steps, config }: TasksPreviewProps) {
         </Table>
       </div>
        <div className="flex items-center justify-end space-x-2 py-4">
-        <Button variant="outline" size="sm" style={getStyle("body-sm")}>
-          <TextWithTooltip stepName="body-sm">Previous</TextWithTooltip>
+        <Button variant="outline" size="sm" style={getStyle(getStepName("tasks-pagination", "body-sm"))}>
+          <TextWithTooltip stepName={getStepName("tasks-pagination", "body-sm")}>Previous</TextWithTooltip>
         </Button>
-        <Button variant="outline" size="sm" style={getStyle("body-sm")}>
-          <TextWithTooltip stepName="body-sm">Next</TextWithTooltip>
+        <Button variant="outline" size="sm" style={getStyle(getStepName("tasks-pagination", "body-sm"))}>
+          <TextWithTooltip stepName={getStepName("tasks-pagination", "body-sm")}>Next</TextWithTooltip>
         </Button>
       </div>
     </div>

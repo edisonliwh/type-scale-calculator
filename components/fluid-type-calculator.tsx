@@ -41,6 +41,7 @@ import { DashboardPreview } from "@/components/previews/dashboard-preview";
 import { TasksPreview } from "@/components/previews/tasks-preview";
 import { SnakeBackground } from "@/components/snake-background";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { StyleMappingPanel, StyleMappings, TextElementId } from "@/components/style-mapping-panel";
 
 // ... existing code ...
 
@@ -135,6 +136,9 @@ export function FluidTypeCalculator() {
   const [isCopied, setIsCopied] = useState(false);
   const [crabEnabled, setCrabEnabled] = useState(false);
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
+  const [previewTab, setPreviewTab] = useState<'examples' | 'dashboard' | 'tasks' | 'landing' | 'article'>('examples');
+  const [styleMappings, setStyleMappings] = useState<StyleMappings>({});
+  const [showStyleMappingPanel, setShowStyleMappingPanel] = useState(false);
   const mainContentRef = React.useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -197,6 +201,34 @@ export function FluidTypeCalculator() {
   const handleInputChange = (field: keyof FluidTypeConfig, value: any) => {
     setConfig((prev) => ({ ...prev, [field]: value }));
   };
+
+  const handleStyleMappingChange = (elementId: TextElementId, stepName: string) => {
+    setStyleMappings((prev) => ({ ...prev, [elementId]: stepName }));
+  };
+
+  const handleRestoreDefaults = () => {
+    // Clear all style mappings for the current active tab
+    const tabPrefix = previewTab === 'examples' ? 'examples' 
+      : previewTab === 'dashboard' ? 'dashboard' 
+      : previewTab === 'tasks' ? 'tasks'
+      : previewTab === 'landing' ? 'landing'
+      : 'article';
+    setStyleMappings((prev) => {
+      const newMappings = { ...prev };
+      // Remove all mappings that start with the current tab prefix
+      Object.keys(newMappings).forEach((key) => {
+        if (key.startsWith(tabPrefix)) {
+          delete newMappings[key as TextElementId];
+        }
+      });
+      return newMappings;
+    });
+  };
+
+  // Get available step names
+  const availableStepNames = useMemo(() => {
+    return steps.map((step) => step.name);
+  }, [steps]);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(cssOutput);
@@ -289,7 +321,7 @@ export function FluidTypeCalculator() {
              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-sm">
                 <Type className="w-5 h-5" />
              </div>
-             <span className="font-semibold text-base text-gray-900 font-title type-scale-animated" style={{ textShadow: 'rgba(0, 0, 0, 0.25) 0px 5px 15px' }}>
+             <span className="font-semibold text-base text-gray-900 type-scale-animated" style={{ textShadow: 'rgba(0, 0, 0, 0.25) 0px 5px 15px' }}>
                  {"TYPE SCALE".split("").map((char, i) => (
                      <span key={`${config.previewMode}-${i}`} className="type-scale-char" style={{ animationDelay: `${i * 0.03}s` }}>
                          {char === " " ? "\u00A0" : char}
@@ -640,7 +672,7 @@ export function FluidTypeCalculator() {
       {/* RIGHT MAIN: PREVIEW */}
       <main ref={mainContentRef} className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
         {/* Snake Background - Only in main content area */}
-        <SnakeBackground containerRef={mainContentRef} enabled={crabEnabled} onToggle={setCrabEnabled} />
+        <SnakeBackground containerRef={mainContentRef} enabled={crabEnabled} onToggle={setCrabEnabled} hideToggle={showStyleMappingPanel} />
          {/* Content Area */}
          <div className="flex-1 relative z-10 flex flex-col h-full w-full min-h-0">
              
@@ -687,7 +719,11 @@ export function FluidTypeCalculator() {
                                  <HeadingPreview steps={steps} config={config} viewMode={viewMode} />
                              </>
                          ) : (
-                             <Tabs defaultValue="examples" className="w-full h-full">
+                             <Tabs defaultValue="examples" className="w-full h-full" onValueChange={(value) => {
+                                 if (value === 'examples' || value === 'dashboard' || value === 'tasks' || value === 'landing' || value === 'article') {
+                                     setPreviewTab(value as 'examples' | 'dashboard' | 'tasks' | 'landing' | 'article');
+                                 }
+                             }}>
                                 <div className="mb-12">
                                     <div className="flex items-center justify-between space-y-2">
                                         <TabsList className="bg-transparent p-0 gap-6">
@@ -697,37 +733,46 @@ export function FluidTypeCalculator() {
                                             <TabsTrigger value="landing" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title" style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}>Landing</TabsTrigger>
                                             <TabsTrigger value="article" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title" style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}>Article</TabsTrigger>
                                         </TabsList>
+                                        {(previewTab === 'examples' || previewTab === 'dashboard' || previewTab === 'tasks' || previewTab === 'landing' || previewTab === 'article') && (
+                                            <button
+                                                onClick={() => setShowStyleMappingPanel(!showStyleMappingPanel)}
+                                                className="text-sm text-muted-foreground hover:text-foreground transition-colors font-title"
+                                                style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}
+                                            >
+                                                Customize text style mapping
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="pb-20">
                                     <TabsContent value="examples" className="mt-0 border-none p-0 outline-none">
-                                        <ExamplesPreview steps={steps} config={config} />
+                                        <ExamplesPreview steps={steps} config={config} styleMappings={styleMappings} />
                                     </TabsContent>
                                     <TabsContent value="dashboard" className="mt-0 border-none p-0 outline-none">
                                         <Card>
                                             <CardContent className="p-0">
-                                                <DashboardPreview steps={steps} config={config} />
+                                                <DashboardPreview steps={steps} config={config} styleMappings={styleMappings} />
                                             </CardContent>
                                         </Card>
                                     </TabsContent>
                                     <TabsContent value="tasks" className="mt-0 border-none p-0 outline-none">
                                         <Card>
                                             <CardContent className="p-0">
-                                                <TasksPreview steps={steps} config={config} />
+                                                <TasksPreview steps={steps} config={config} styleMappings={styleMappings} />
                                             </CardContent>
                                         </Card>
                                     </TabsContent>
                                     <TabsContent value="landing" className="mt-0 border-none p-0 outline-none">
                                         <Card>
                                             <CardContent className="p-0">
-                                                <LandingPreview steps={steps} config={config} />
+                                                <LandingPreview steps={steps} config={config} styleMappings={styleMappings} />
                                             </CardContent>
                                         </Card>
                                     </TabsContent>
                                     <TabsContent value="article" className="mt-0 border-none p-0 outline-none">
                                         <Card>
                                             <CardContent className="p-0">
-                                                <ArticlePreview steps={steps} config={config} />
+                                                <ArticlePreview steps={steps} config={config} styleMappings={styleMappings} />
                                             </CardContent>
                                         </Card>
                                     </TabsContent>
@@ -797,6 +842,18 @@ export function FluidTypeCalculator() {
           </div>
         </footer>
       </main>
+
+      {/* RIGHT SIDEBAR: STYLE MAPPING - Only show when button is clicked */}
+      {config.previewMode === 'landing' && showStyleMappingPanel && (previewTab === 'examples' || previewTab === 'dashboard' || previewTab === 'tasks' || previewTab === 'landing' || previewTab === 'article') && (
+        <StyleMappingPanel
+          styleMappings={styleMappings}
+          onStyleMappingChange={handleStyleMappingChange}
+          onRestoreDefaults={handleRestoreDefaults}
+          availableSteps={availableStepNames}
+          activeTab={previewTab}
+          onClose={() => setShowStyleMappingPanel(false)}
+        />
+      )}
       </div>
     </div>
   );
@@ -969,7 +1026,11 @@ function HeadingPreview({ steps, config, viewMode = 'desktop' }: { steps: any[],
     );
 }
 
-function ArticlePreview({ steps, config }: { steps: any[], config: FluidTypeConfig }) {
+function ArticlePreview({ steps, config, styleMappings = {} }: { steps: any[], config: FluidTypeConfig, styleMappings?: StyleMappings }) {
+    // Helper to get step name for an element, using mapping or default
+    const getStepName = (elementId: string, defaultStep: string) => {
+        return (styleMappings[elementId as keyof StyleMappings] as string) || defaultStep;
+    };
     const isShadcn = config.maxRatio === "shadcn" || config.minRatio === "shadcn";
     
     const getStyle = (stepName: string) => {
@@ -1038,184 +1099,184 @@ function ArticlePreview({ steps, config }: { steps: any[], config: FluidTypeConf
         <TooltipProvider delayDuration={0} skipDelayDuration={0}>
             <div className="space-y-8 px-8 py-12 max-w-3xl mx-auto">
                 <article>
-                    <TextWithTooltip stepName="heading-1" as="h1" style={getStyle('heading-1')} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-title", "heading-1")} as="h1" style={getStyle(getStepName("article-title", "heading-1"))} className="mb-4">
                         The silent symphony of type and sound
                     </TextWithTooltip>
 
-                    <div className="mb-8 pb-6 border-b border-gray-200" style={getStyle('body-sm')}>
-                        <TextWithTooltip stepName="body-sm" as="p" className="text-gray-600">
+                    <div className="mb-8 pb-6 border-b border-gray-200" style={getStyle(getStepName("article-meta", "body-sm"))}>
+                        <TextWithTooltip stepName={getStepName("article-meta", "body-sm")} as="p" className="text-gray-600">
                             By <span className="font-medium text-gray-900">Owen Gregory</span> • Source: <a href="https://24ways.org/2011/composing-the-new-canon" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">24 ways: Composing the New Canon</a>
                         </TextWithTooltip>
                     </div>
 
-                    <TextWithTooltip stepName="heading-2" as="h2" style={getStyle('heading-2')} className="mb-6">
+                    <TextWithTooltip stepName={getStepName("article-heading-2", "heading-2")} as="h2" style={getStyle(getStepName("article-heading-2", "heading-2"))} className="mb-6">
                         A world where letters breathe like music
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="heading-5" as="h5" style={getStyle('heading-5')} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
                         The page as a musical staff
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="body" as="p" style={getStyle('body')} className="mb-6">
+                    <TextWithTooltip stepName={getStepName("article-body", "body")} as="p" style={getStyle(getStepName("article-body", "body"))} className="mb-6">
                         In a quiet atelier where letters live like notes on a staff, the realm of typography hums with invisible music. Every lowercase "a," every bold headline and tiny footnote is a single tone, waiting to be woven into a chord. In this world, the text on the page is the melody, and the layout is its harmony.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="heading-5" as="h5" style={getStyle('heading-5')} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
                         Margins as rests and breath
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="body" as="p" style={getStyle('body')} className="mb-6">
+                    <TextWithTooltip stepName={getStepName("article-body", "body")} as="p" style={getStyle(getStepName("article-body", "body"))} className="mb-6">
                         Margins are not emptiness. They are the pauses between phrases. Just as a musician must breathe between measures, a reader needs silence between blocks of meaning. Left margins steady the rhythm. Bottom margins let the final note linger.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="heading-5" as="h5" style={getStyle('heading-5')} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
                         Line length as melodic phrasing
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="body" as="p" style={getStyle('body')} className="mb-8">
+                    <TextWithTooltip stepName={getStepName("article-body", "body")} as="p" style={getStyle(getStepName("article-body", "body"))} className="mb-8">
                         A short line cuts like staccato. A long line stretches like legato. The measure of a paragraph determines whether the eye dances quickly or glides slowly. Good line length does not shout. It sings.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="heading-2" as="h2" style={getStyle('heading-2')} className="mb-6">
+                    <TextWithTooltip stepName={getStepName("article-heading-2", "heading-2")} as="h2" style={getStyle(getStepName("article-heading-2", "heading-2"))} className="mb-6">
                         Harmony through proportion
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="heading-5" as="h5" style={getStyle('heading-5')} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
                         Ratios as musical intervals
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="body" as="p" style={getStyle('body')} className="mb-6">
+                    <TextWithTooltip stepName={getStepName("article-body", "body")} as="p" style={getStyle(getStepName("article-body", "body"))} className="mb-6">
                         In this atelier, designers do not choose font size or margin at random. They reach into the lineage of music: ratios like 2:3, 3:4, 3:5, 1:2. They treat these not as abstract numbers, but as living intervals.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="heading-5" as="h5" style={getStyle('heading-5')} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
                         Type scale as chord progression
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="body" as="p" style={getStyle('body')} className="mb-6">
+                    <TextWithTooltip stepName={getStepName("article-body", "body")} as="p" style={getStyle(getStepName("article-body", "body"))} className="mb-6">
                         When body text breathes at a 2:3 rhythm, it becomes a perfect fifth. A heading that doubles in size becomes an octave. A caption at three-quarters of the base size becomes a perfect fourth. The typographic scale stops being mechanical and starts behaving like harmony in motion.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="heading-5" as="h5" style={getStyle('heading-5')} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
                         Vertical rhythm as time signature
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="body" as="p" style={getStyle('body')} className="mb-8">
+                    <TextWithTooltip stepName={getStepName("article-body", "body")} as="p" style={getStyle(getStepName("article-body", "body"))} className="mb-8">
                         Line height, spacing between paragraphs, and spacing between sections form a time signature for the page. Too tight and the music rushes. Too loose and the song loses tension. Good rhythm makes time feel natural.
                     </TextWithTooltip>
 
                     <blockquote className="my-8 pl-6 border-l-4 border-gray-300">
-                        <TextWithTooltip stepName="body-lg" as="p" style={getStyle('body-lg')} className="mb-2 italic">
+                        <TextWithTooltip stepName={getStepName("article-blockquote", "body-lg")} as="p" style={getStyle(getStepName("article-blockquote", "body-lg"))} className="mb-2 italic">
                             "Proportion is not decoration. It is structure that the eye can hear."
                         </TextWithTooltip>
-                        <TextWithTooltip stepName="body-sm" as="p" style={getStyle('body-sm')} className="text-gray-600">
+                        <TextWithTooltip stepName={getStepName("article-meta", "body-sm")} as="p" style={getStyle(getStepName("article-meta", "body-sm"))} className="text-gray-600">
                             anonymous designer
                         </TextWithTooltip>
                     </blockquote>
 
-                    <TextWithTooltip stepName="heading-2" as="h2" style={getStyle('heading-2')} className="mb-6">
+                    <TextWithTooltip stepName={getStepName("article-heading-2", "heading-2")} as="h2" style={getStyle(getStepName("article-heading-2", "heading-2"))} className="mb-6">
                         Devices as instruments
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="heading-5" as="h5" style={getStyle('heading-5')} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
                         Screen size as resonance chamber
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="body" as="p" style={getStyle('body')} className="mb-6">
+                    <TextWithTooltip stepName={getStepName("article-body", "body")} as="p" style={getStyle(getStepName("article-body", "body"))} className="mb-6">
                         A narrow phone compresses the sound. A wide desktop lets it expand. The same composition vibrates differently inside different physical containers, just like the same melody played in a small room versus a cathedral.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="heading-5" as="h5" style={getStyle('heading-5')} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
                         Orientation as key change
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="body" as="p" style={getStyle('body')} className="mb-6">
+                    <TextWithTooltip stepName={getStepName("article-body", "body")} as="p" style={getStyle(getStepName("article-body", "body"))} className="mb-6">
                         Portrait and landscape are not just rotations. They are modulations. The same content shifts emotional weight when the axis changes. What felt intimate becomes expansive. What felt commanding becomes personal.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="heading-5" as="h5" style={getStyle('heading-5')} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
                         Responsive design as changing tempo
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="body" as="p" style={getStyle('body')} className="mb-8">
+                    <TextWithTooltip stepName={getStepName("article-body", "body")} as="p" style={getStyle(getStepName("article-body", "body"))} className="mb-8">
                         Breakpoints are tempo changes. The rhythm tightens on small screens and relaxes on larger ones. The challenge is not to freeze the design, but to let it breathe without breaking the song.
                     </TextWithTooltip>
 
                     <blockquote className="my-8 pl-6 border-l-4 border-gray-300">
-                        <TextWithTooltip stepName="body-lg" as="p" style={getStyle('body-lg')} className="mb-2 italic">
+                        <TextWithTooltip stepName={getStepName("article-blockquote", "body-lg")} as="p" style={getStyle(getStepName("article-blockquote", "body-lg"))} className="mb-2 italic">
                             "A good composition survives the change of instruments."
                         </TextWithTooltip>
-                        <TextWithTooltip stepName="body-sm" as="p" style={getStyle('body-sm')} className="text-gray-600">
+                        <TextWithTooltip stepName={getStepName("article-meta", "body-sm")} as="p" style={getStyle(getStepName("article-meta", "body-sm"))} className="text-gray-600">
                             adapted from musical theory
                         </TextWithTooltip>
                     </blockquote>
 
-                    <TextWithTooltip stepName="heading-2" as="h2" style={getStyle('heading-2')} className="mb-6">
+                    <TextWithTooltip stepName={getStepName("article-heading-2", "heading-2")} as="h2" style={getStyle(getStepName("article-heading-2", "heading-2"))} className="mb-6">
                         Dissonance and emotional gravity
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="heading-5" as="h5" style={getStyle('heading-5')} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
                         When layout becomes noise
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="body" as="p" style={getStyle('body')} className="mb-6">
+                    <TextWithTooltip stepName={getStepName("article-body", "body")} as="p" style={getStyle(getStepName("article-body", "body"))} className="mb-6">
                         A cramped line height becomes a rushed tempo. A headline pressed too close to body text becomes a collision of sounds. The layout still functions, but it no longer flows. The page begins to shout instead of speak.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="heading-5" as="h5" style={getStyle('heading-5')} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
                         Visual clutter as harmonic distortion
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="body" as="p" style={getStyle('body')} className="mb-6">
+                    <TextWithTooltip stepName={getStepName("article-body", "body")} as="p" style={getStyle(getStepName("article-body", "body"))} className="mb-6">
                         Too many weights, too many sizes, too many colors collapse into visual distortion. The eye cannot separate voices. The melody disappears into static.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="heading-5" as="h5" style={getStyle('heading-5')} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
                         Tuned silence as emotional control
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="body" as="p" style={getStyle('body')} className="mb-8">
+                    <TextWithTooltip stepName={getStepName("article-body", "body")} as="p" style={getStyle(getStepName("article-body", "body"))} className="mb-8">
                         White space calibrated with care becomes emotional gravity. It slows the reader without force. It gives seriousness weight and gives lightness air. Silence, once tuned, becomes expressive.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="heading-2" as="h2" style={getStyle('heading-2')} className="mb-6">
+                    <TextWithTooltip stepName={getStepName("article-heading-2", "heading-2")} as="h2" style={getStyle(getStepName("article-heading-2", "heading-2"))} className="mb-6">
                         The reader as the final listener
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="heading-5" as="h5" style={getStyle('heading-5')} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
                         Perception without awareness
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="body" as="p" style={getStyle('body')} className="mb-6">
+                    <TextWithTooltip stepName={getStepName("article-body", "body")} as="p" style={getStyle(getStepName("article-body", "body"))} className="mb-6">
                         The reader never measures ratios. The reader never names intervals. They only feel balance. They scroll. They pause. They breathe between sections without realizing the layout is guiding them.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="heading-5" as="h5" style={getStyle('heading-5')} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
                         Reading as a temporal act
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="body" as="p" style={getStyle('body')} className="mb-6">
+                    <TextWithTooltip stepName={getStepName("article-body", "body")} as="p" style={getStyle(getStepName("article-body", "body"))} className="mb-6">
                         Typography unfolds in time, not space. Meaning is not consumed all at once. It is played. The reader passes through introduction, tension, resolution, and release just like a listener moves through movements in a piece of music.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="heading-5" as="h5" style={getStyle('heading-5')} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
                         Memory as the echo of design
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName="body" as="p" style={getStyle('body')} className="mb-8">
+                    <TextWithTooltip stepName={getStepName("article-body", "body")} as="p" style={getStyle(getStepName("article-body", "body"))} className="mb-8">
                         When the page is closed, something remains. Not the text. Not the pixels. But the sensation of ease, clarity, or strain. The emotional residue of rhythm.
                     </TextWithTooltip>
 
                     <blockquote className="my-8 pl-6 border-l-4 border-gray-300">
-                        <TextWithTooltip stepName="body-lg" as="p" style={getStyle('body-lg')} className="mb-2 italic">
+                        <TextWithTooltip stepName={getStepName("article-blockquote", "body-lg")} as="p" style={getStyle(getStepName("article-blockquote", "body-lg"))} className="mb-2 italic">
                             "The reader hears with their eyes."
                         </TextWithTooltip>
-                        <TextWithTooltip stepName="body-sm" as="p" style={getStyle('body-sm')} className="text-gray-600">
+                        <TextWithTooltip stepName={getStepName("article-meta", "body-sm")} as="p" style={getStyle(getStepName("article-meta", "body-sm"))} className="text-gray-600">
                             typographic folklore
                         </TextWithTooltip>
                     </blockquote>
 
-                    <TextWithTooltip stepName="body" as="p" style={getStyle('body')} className="mb-8">
+                    <TextWithTooltip stepName={getStepName("article-body", "body")} as="p" style={getStyle(getStepName("article-body", "body"))} className="mb-8">
                         The tab closes. The sound stops. But something lingers — a faint afterimage of rhythm, a soft memory of harmony. The page is gone, yet its resonance remains.
                     </TextWithTooltip>
                 </article>
@@ -1224,7 +1285,11 @@ function ArticlePreview({ steps, config }: { steps: any[], config: FluidTypeConf
     );
 }
 
-function LandingPreview({ steps, config }: { steps: any[], config: FluidTypeConfig }) {
+function LandingPreview({ steps, config, styleMappings = {} }: { steps: any[], config: FluidTypeConfig, styleMappings?: StyleMappings }) {
+    // Helper to get step name for an element, using mapping or default
+    const getStepName = (elementId: string, defaultStep: string) => {
+        return (styleMappings[elementId as keyof StyleMappings] as string) || defaultStep;
+    };
     const isShadcn = config.maxRatio === "shadcn" || config.minRatio === "shadcn";
     
     const getStyle = (stepName: string) => {
@@ -1293,21 +1358,21 @@ function LandingPreview({ steps, config }: { steps: any[], config: FluidTypeConf
         <TooltipProvider delayDuration={0} skipDelayDuration={0}>
             <div className="space-y-24 px-8 py-12">
                  <section className="space-y-6">
-                     <TextWithTooltip stepName="body-sm" style={getStyle('body-sm')} className="uppercase tracking-widest font-bold text-gray-600">
+                     <TextWithTooltip stepName={getStepName("landing-badge", "body-sm")} style={getStyle(getStepName("landing-badge", "body-sm"))} className="uppercase tracking-widest font-bold text-gray-600">
                          Introducing Fluid Scale
                      </TextWithTooltip>
-                     <TextWithTooltip stepName="heading-1" as="h1" style={{ ...getStyle('heading-1'), fontWeight: config.headingFontWeight }}>
+                     <TextWithTooltip stepName={getStepName("landing-heading", "heading-1")} as="h1" style={{ ...getStyle(getStepName("landing-heading", "heading-1")), fontWeight: config.headingFontWeight }}>
                          Typography that adapts to every device.
                      </TextWithTooltip>
-                     <TextWithTooltip stepName="body-lg" as="p" style={{ ...getStyle('body-lg'), maxWidth: '45ch', opacity: 0.8 }}>
+                     <TextWithTooltip stepName={getStepName("landing-description", "body-lg")} as="p" style={{ ...getStyle(getStepName("landing-description", "body-lg")), maxWidth: '45ch', opacity: 0.8 }}>
                          Create beautiful, responsive type scales that work seamlessly across mobile, tablet, and desktop screens without a single media query.
                      </TextWithTooltip>
                      <div className="flex gap-4 pt-4">
-                         <Button size="lg" className="rounded-full px-8 bg-black text-white hover:bg-gray-800" style={getStyle('body')}>
-                             <TextWithTooltip stepName="body">Get Started</TextWithTooltip>
+                         <Button size="lg" className="rounded-full px-8 bg-black text-white hover:bg-gray-800" style={getStyle(getStepName("landing-button-primary", "body"))}>
+                             <TextWithTooltip stepName={getStepName("landing-button-primary", "body")}>Get Started</TextWithTooltip>
                          </Button>
-                         <Button size="lg" variant="outline" className="rounded-full px-8 border-gray-300 text-gray-700" style={getStyle('body')}>
-                             <TextWithTooltip stepName="body">View Documentation</TextWithTooltip>
+                         <Button size="lg" variant="outline" className="rounded-full px-8 border-gray-300 text-gray-700" style={getStyle(getStepName("landing-button-secondary", "body"))}>
+                             <TextWithTooltip stepName={getStepName("landing-button-secondary", "body")}>View Documentation</TextWithTooltip>
                          </Button>
                      </div>
                  </section>
@@ -1322,10 +1387,10 @@ function LandingPreview({ steps, config }: { steps: any[], config: FluidTypeConf
                         <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mb-6">
                              <feature.icon className="w-6 h-6 text-gray-900" />
                          </div>
-                         <TextWithTooltip stepName="heading-5" as="h3" style={getStyle('heading-5')}>
+                         <TextWithTooltip stepName={getStepName("landing-feature-title", "heading-5")} as="h3" style={getStyle(getStepName("landing-feature-title", "heading-5"))}>
                              {feature.title}
                          </TextWithTooltip>
-                         <TextWithTooltip stepName="body" as="p" style={getStyle('body')} className="text-gray-600 leading-relaxed">
+                         <TextWithTooltip stepName={getStepName("landing-feature-description", "body")} as="p" style={getStyle(getStepName("landing-feature-description", "body"))} className="text-gray-600 leading-relaxed">
                              {feature.text}
                          </TextWithTooltip>
                      </div>
@@ -1335,10 +1400,10 @@ function LandingPreview({ steps, config }: { steps: any[], config: FluidTypeConf
              <section className="border-t border-gray-200/50 pt-24">
                  <div className="grid md:grid-cols-2 gap-16">
                      <div className="space-y-6">
-                         <TextWithTooltip stepName="heading-2" as="h2" style={getStyle('heading-2')}>
-                             Stop fighting with breakpoints
-                         </TextWithTooltip>
-                         <TextWithTooltip stepName="body" as="p" style={getStyle('body')} className="text-gray-600 leading-relaxed">
+                        <TextWithTooltip stepName={getStepName("landing-heading-2", "heading-2")} as="h2" style={getStyle(getStepName("landing-heading-2", "heading-2"))}>
+                            Stop fighting with breakpoints
+                        </TextWithTooltip>
+                         <TextWithTooltip stepName={getStepName("landing-description", "body")} as="p" style={getStyle(getStepName("landing-description", "body"))} className="text-gray-600 leading-relaxed">
                              Traditional responsive typography requires manually setting font sizes at multiple breakpoints. This is tedious and often results in "jumpy" resizing. Fluid typography uses mathematical interpolation to scale smoothly.
                          </TextWithTooltip>
                          <ul className="space-y-3 pt-4">
@@ -1348,9 +1413,9 @@ function LandingPreview({ steps, config }: { steps: any[], config: FluidTypeConf
                                  "Accessible and user-friendly",
                                  "Works with any design system"
                              ].map(item => (
-                                 <li key={item} className="flex items-center gap-3" style={getStyle('body-sm')}>
+                                 <li key={item} className="flex items-center gap-3" style={getStyle(getStepName("landing-feature-description", "body-sm"))}>
                                      <Check className="w-5 h-5 text-green-600 shrink-0" />
-                                     <TextWithTooltip stepName="body-sm" className="text-gray-700">
+                                     <TextWithTooltip stepName={getStepName("landing-feature-description", "body-sm")} className="text-gray-700">
                                          {item}
                                      </TextWithTooltip>
                                  </li>
@@ -1358,7 +1423,7 @@ function LandingPreview({ steps, config }: { steps: any[], config: FluidTypeConf
                          </ul>
                      </div>
                      <div className="bg-gray-50 rounded-3xl p-8 flex items-center justify-center border-2 border-dashed border-gray-200">
-                         <TextWithTooltip stepName="body-sm" style={getStyle('body-sm')} className="text-gray-600 font-mono">
+                         <TextWithTooltip stepName={getStepName("landing-description", "body-sm")} style={getStyle(getStepName("landing-description", "body-sm"))} className="text-gray-600 font-mono">
                              Visual Placeholder
                          </TextWithTooltip>
                      </div>

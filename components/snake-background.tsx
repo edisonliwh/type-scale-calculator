@@ -14,9 +14,10 @@ interface SnakeBackgroundProps {
   containerRef?: React.RefObject<HTMLElement | null>;
   enabled?: boolean;
   onToggle?: (enabled: boolean) => void;
+  hideToggle?: boolean;
 }
 
-export function SnakeBackground({ containerRef, enabled = true, onToggle }: SnakeBackgroundProps) {
+export function SnakeBackground({ containerRef, enabled = true, onToggle, hideToggle = false }: SnakeBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [score, setScore] = useState(0);
@@ -510,21 +511,23 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle }: Snak
 
   return (
     <>
-      {/* Toggle - Always Visible */}
-      <div className="absolute top-4 right-4 z-50">
-        <div className="flex items-center gap-2">
-          <Switch
-            id="crab-toggle"
-            checked={enabled}
-            onCheckedChange={onToggle}
-            className="[&[data-state=checked]]:!bg-[oklch(64.6%_0.222_41.116)]"
-          />
-          <Label htmlFor="crab-toggle" className="text-sm font-medium text-gray-600 cursor-pointer whitespace-nowrap font-title flex items-center gap-1" style={{ fontSize: '12px' }}>
-            <span>🦀</span>
-            <span className="hidden lg:inline">Hungry crab</span>
-          </Label>
+      {/* Toggle - Hide when style mapping panel is open */}
+      {!hideToggle && (
+        <div className="absolute top-4 right-4 z-50">
+          <div className="flex items-center gap-2">
+            <Switch
+              id="crab-toggle"
+              checked={enabled}
+              onCheckedChange={onToggle}
+              className="[&[data-state=checked]]:!bg-[oklch(64.6%_0.222_41.116)]"
+            />
+            <Label htmlFor="crab-toggle" className="text-sm font-medium text-gray-600 cursor-pointer whitespace-nowrap font-title flex items-center gap-1" style={{ fontSize: '12px' }}>
+              <span>🦀</span>
+              <span className="hidden lg:inline">Hungry crab</span>
+            </Label>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Game Canvas - Only when enabled */}
       {enabled && (
