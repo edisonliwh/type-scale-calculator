@@ -879,57 +879,60 @@ function HeadingPreview({ steps, config }: { steps: any[], config: FluidTypeConf
                             <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(0, 0, 0, 0.1)' }} />
                         </div>
                     )}
-                    {(categorySteps as typeof sortedSteps).map((step: any, i: number) => (
-                        <div key={step.name}>
-                            <div className="group relative">
-                                <div className="flex flex-col gap-2">
-                                     <div className="flex items-baseline gap-3 text-xs font-mono select-none text-gray-600">
-                                         <span className="uppercase tracking-wider font-bold transition-colors group-hover:text-[oklch(70.5%_0.213_47.604)]">{step.name}</span>
-                                         <span>•</span>
-                                         <span>{isShadcn
-                                                ? `${(step.fontSize / config.remValue).toFixed(2)}rem / ${step.fontSize.toFixed(2)}px`
-                                                : config.useRems 
-                                                    ? `${(step.maxSize / config.remValue).toFixed(2)}-${(step.minSize / config.remValue).toFixed(2)}rem / ${step.maxSize.toFixed(2)}-${step.minSize.toFixed(2)}px`
-                                                    : `${step.maxSize.toFixed(0)}-${step.minSize.toFixed(0)}px`
-                                         }</span>
-                                     </div>
-                                     
-                                    {styleDescriptions[step.name] && (
-                                        <p 
-                                            className="text-gray-600 font-mono"
+                    {(() => {
+                        const typedCategorySteps = categorySteps as typeof sortedSteps;
+                        return typedCategorySteps.map((step: any, i: number) => (
+                            <div key={step.name}>
+                                <div className="group relative">
+                                    <div className="flex flex-col gap-2">
+                                         <div className="flex items-baseline gap-3 text-xs font-mono select-none text-gray-600">
+                                             <span className="uppercase tracking-wider font-bold transition-colors group-hover:text-[oklch(70.5%_0.213_47.604)]">{step.name}</span>
+                                             <span>•</span>
+                                             <span>{isShadcn
+                                                    ? `${(step.fontSize / config.remValue).toFixed(2)}rem / ${step.fontSize.toFixed(2)}px`
+                                                    : config.useRems 
+                                                        ? `${(step.maxSize / config.remValue).toFixed(2)}-${(step.minSize / config.remValue).toFixed(2)}rem / ${step.maxSize.toFixed(2)}-${step.minSize.toFixed(2)}px`
+                                                        : `${step.maxSize.toFixed(0)}-${step.minSize.toFixed(0)}px`
+                                             }</span>
+                                         </div>
+                                         
+                                        {styleDescriptions[step.name] && (
+                                            <p 
+                                                className="text-gray-600 font-mono"
+                                                style={{ 
+                                                    fontSize: '11px',
+                                                    lineHeight: '1.5',
+                                                    opacity: 0.9
+                                                }}
+                                            >
+                                                {styleDescriptions[step.name]}
+                                            </p>
+                                        )}
+                                         
+                                         <p 
+                                            contentEditable
+                                            suppressContentEditableWarning
+                                            className="outline-none empty:before:content-['Type_something...'] empty:before:text-gray-600"
                                             style={{ 
-                                                fontSize: '11px',
-                                                lineHeight: '1.5',
-                                                opacity: 0.9
+                                                fontSize: step.clamp,
+                                                maxWidth: '25ch',
+                                                marginTop: '12px',
+                                                ...getHeadingStyle(step)
                                             }}
                                         >
-                                            {styleDescriptions[step.name]}
+                                             {i === 0 ? "The quick brown fox jumps over the lazy dog" : 
+                                              i === 1 ? "Visual hierarchy is crucial for readability" :
+                                              i === 2 ? "Fluid typography scales gracefully" :
+                                              "Almost before we knew it, we had left the ground."}
                                         </p>
-                                    )}
-                                     
-                                     <p 
-                                        contentEditable
-                                        suppressContentEditableWarning
-                                        className="outline-none empty:before:content-['Type_something...'] empty:before:text-gray-600"
-                                        style={{ 
-                                            fontSize: step.clamp,
-                                            maxWidth: '25ch',
-                                            marginTop: '12px',
-                                            ...getHeadingStyle(step)
-                                        }}
-                                    >
-                                         {i === 0 ? "The quick brown fox jumps over the lazy dog" : 
-                                          i === 1 ? "Visual hierarchy is crucial for readability" :
-                                          i === 2 ? "Fluid typography scales gracefully" :
-                                          "Almost before we knew it, we had left the ground."}
-                                    </p>
+                                    </div>
                                 </div>
+                                {i < typedCategorySteps.length - 1 && (
+                                    <div className="h-px my-8" style={{ backgroundColor: 'rgba(0, 0, 0, 0.1)' }} />
+                                )}
                             </div>
-                            {i < categorySteps.length - 1 && (
-                                <div className="h-px my-8" style={{ backgroundColor: 'rgba(0, 0, 0, 0.1)' }} />
-                            )}
-                        </div>
-                    ))}
+                        ));
+                    })()}
                 </div>
             ))}
         </div>
