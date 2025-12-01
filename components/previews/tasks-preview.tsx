@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MoreHorizontal, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
@@ -71,6 +72,45 @@ export function TasksPreview({ steps, config }: TasksPreviewProps) {
     };
   };
 
+  const getRandomFoodEmoji = () => {
+    const foodEmojis = ['🍕', '🍔', '🌮', '🍜', '🍣', '🍱', '🥗', '🍝', '🍲', '🥘', '🍛', '🍙', '🍚', '🍘', '🥟', '🥠', '🥡', '🍤', '🍗', '🍖', '🥩', '🥓', '🍳', '🧀', '🥞', '🧇', '🥯', '🥐', '🥨', '🥖', '🍞', '🥪', '🌭', '🌯', '🥙', '🥫', '🍕', '🍟', '🍿', '🧂', '🥜', '🌰', '🍫', '🍬', '🍭', '🍮', '🍯', '🍰', '🧁', '🍪', '🍩', '🍨', '🍧', '🍦', '🥧', '🍰', '🎂', '🍉', '🍊', '🍋', '🍌', '🍍', '🥭', '🍎', '🍏', '🍐', '🍑', '🍒', '🍓', '🥝', '🍅', '🥥', '🥑', '🍆', '🥔', '🥕', '🌽', '🌶️', '🥒', '🥬', '🥦', '🧄', '🧅', '🥯', '🥖', '🍞'];
+    return foodEmojis[Math.floor(Math.random() * foodEmojis.length)];
+  };
+
+  const TextWithTooltip = ({ stepName, children, className = "", style, as: Component = "span" }: { stepName: string; children: React.ReactNode; className?: string; style?: React.CSSProperties; as?: keyof JSX.IntrinsicElements }) => {
+    const isShadcn = config.maxRatio === "shadcn" || config.minRatio === "shadcn";
+    const mappedStepName = isShadcn && STEP_NAME_MAP[stepName] ? STEP_NAME_MAP[stepName] : stepName;
+    
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Component className={className} style={style}>{children}</Component>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{getRandomFoodEmoji()} {mappedStepName}</p>
+        </TooltipContent>
+      </Tooltip>
+    );
+  };
+
+  const InputWithTooltip = ({ stepName, children, ...props }: { stepName: string; children: React.ReactNode; [key: string]: any }) => {
+    const isShadcn = config.maxRatio === "shadcn" || config.minRatio === "shadcn";
+    const mappedStepName = isShadcn && STEP_NAME_MAP[stepName] ? STEP_NAME_MAP[stepName] : stepName;
+    
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="inline-block w-full">
+            {children}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>🦀 {mappedStepName}</p>
+        </TooltipContent>
+      </Tooltip>
+    );
+  };
+
   const tasks = [
     { id: "TASK-8782", title: "You can't compress the program without quantifying the open-source SSD pixel!", status: "in progress", priority: "medium", label: "documentation" },
     { id: "TASK-7878", title: "Try to calculate the EXE feed, maybe it will index the multi-byte pixel!", status: "backlog", priority: "low", label: "documentation" },
@@ -82,14 +122,17 @@ export function TasksPreview({ steps, config }: TasksPreviewProps) {
   ];
 
   return (
-    <div className="h-full flex-1 flex-col space-y-8 px-8 py-2 flex">
-      <div className="flex items-center justify-between space-y-2">
-        <div>
-          <h2 className="font-bold tracking-tight font-title" style={getStyle("heading-3")}>Welcome back!</h2>
-          <p className="text-muted-foreground" style={getStyle("body")}>
-            Here&apos;s a list of your tasks for this month!
-          </p>
-        </div>
+    <TooltipProvider delayDuration={0} skipDelayDuration={0}>
+      <div className="h-full flex-1 flex-col space-y-8 px-8 py-2 flex">
+        <div className="flex items-center justify-between space-y-2">
+          <div>
+            <h2 className="font-bold tracking-tight font-title" style={getStyle("heading-3")}>
+              <TextWithTooltip stepName="heading-3">Welcome back!</TextWithTooltip>
+            </h2>
+            <p className="text-muted-foreground" style={getStyle("body")}>
+              <TextWithTooltip stepName="body">Here&apos;s a list of your tasks for this month!</TextWithTooltip>
+            </p>
+          </div>
         <div className="flex items-center space-x-2">
            <div className="flex items-center space-x-2 bg-secondary/50 p-1 rounded-md">
              <AvatarUser />
@@ -99,19 +142,23 @@ export function TasksPreview({ steps, config }: TasksPreviewProps) {
       
       <div className="flex items-center justify-between">
         <div className="flex flex-1 items-center space-x-2">
-          <Input
-            placeholder="Filter tasks..."
-            className="h-8 w-[150px] lg:w-[250px]"
-            style={getStyle("body-sm")}
-          />
+          <InputWithTooltip stepName="body-sm">
+            <Input
+              placeholder="Filter tasks..."
+              className="h-8 w-[150px] lg:w-[250px]"
+              style={getStyle("body-sm")}
+            />
+          </InputWithTooltip>
           <Button variant="outline" size="sm" className="h-8 border-dashed" style={getStyle("body-sm")}>
-            Status
+            <TextWithTooltip stepName="body-sm">Status</TextWithTooltip>
           </Button>
           <Button variant="outline" size="sm" className="h-8 border-dashed" style={getStyle("body-sm")}>
-            Priority
+            <TextWithTooltip stepName="body-sm">Priority</TextWithTooltip>
           </Button>
         </div>
-        <Button size="sm" className="ml-auto h-8 lg:flex" style={getStyle("body-sm")}>View</Button>
+        <Button size="sm" className="ml-auto h-8 lg:flex" style={getStyle("body-sm")}>
+          <TextWithTooltip stepName="body-sm">View</TextWithTooltip>
+        </Button>
       </div>
 
       <div className="rounded-md border bg-white">
@@ -121,10 +168,18 @@ export function TasksPreview({ steps, config }: TasksPreviewProps) {
               <TableHead className="w-[50px]">
                   <Checkbox />
               </TableHead>
-              <TableHead className="w-[100px]" style={getStyle("body-sm")}>Task</TableHead>
-              <TableHead style={getStyle("body-sm")}>Title</TableHead>
-              <TableHead style={getStyle("body-sm")}>Status</TableHead>
-              <TableHead style={getStyle("body-sm")}>Priority</TableHead>
+              <TableHead className="w-[100px]" style={getStyle("body-sm")}>
+                <TextWithTooltip stepName="body-sm">Task</TextWithTooltip>
+              </TableHead>
+              <TableHead style={getStyle("body-sm")}>
+                <TextWithTooltip stepName="body-sm">Title</TextWithTooltip>
+              </TableHead>
+              <TableHead style={getStyle("body-sm")}>
+                <TextWithTooltip stepName="body-sm">Status</TextWithTooltip>
+              </TableHead>
+              <TableHead style={getStyle("body-sm")}>
+                <TextWithTooltip stepName="body-sm">Priority</TextWithTooltip>
+              </TableHead>
               <TableHead className="text-right"></TableHead>
             </TableRow>
           </TableHeader>
@@ -134,19 +189,25 @@ export function TasksPreview({ steps, config }: TasksPreviewProps) {
                 <TableCell>
                     <Checkbox />
                 </TableCell>
-                <TableCell style={{ ...getStyle("body"), fontWeight: 400 }}>{task.id}</TableCell>
+                <TableCell style={{ ...getStyle("body"), fontWeight: 400 }}>
+                  <TextWithTooltip stepName="body">{task.id}</TextWithTooltip>
+                </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
-                    <Badge variant="outline" style={{ ...getStyle("body"), fontWeight: 400 }}>{task.label}</Badge>
+                    <Badge variant="outline" style={{ ...getStyle("body"), fontWeight: 400 }}>
+                      <TextWithTooltip stepName="body">{task.label}</TextWithTooltip>
+                    </Badge>
                     <span className="max-w-[500px] truncate" style={{ ...getStyle("body"), fontWeight: 400 }}>
-                      {task.title}
+                      <TextWithTooltip stepName="body">{task.title}</TextWithTooltip>
                     </span>
                   </div>
                 </TableCell>
                 <TableCell style={{ ...getStyle("body"), fontWeight: 400 }}>
-                    {task.status}
+                  <TextWithTooltip stepName="body">{task.status}</TextWithTooltip>
                 </TableCell>
-                <TableCell style={{ ...getStyle("body"), fontWeight: 400 }}>{task.priority}</TableCell>
+                <TableCell style={{ ...getStyle("body"), fontWeight: 400 }}>
+                  <TextWithTooltip stepName="body">{task.priority}</TextWithTooltip>
+                </TableCell>
                 <TableCell className="text-right">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -171,10 +232,15 @@ export function TasksPreview({ steps, config }: TasksPreviewProps) {
         </Table>
       </div>
        <div className="flex items-center justify-end space-x-2 py-4">
-        <Button variant="outline" size="sm" style={getStyle("body-sm")}>Previous</Button>
-        <Button variant="outline" size="sm" style={getStyle("body-sm")}>Next</Button>
+        <Button variant="outline" size="sm" style={getStyle("body-sm")}>
+          <TextWithTooltip stepName="body-sm">Previous</TextWithTooltip>
+        </Button>
+        <Button variant="outline" size="sm" style={getStyle("body-sm")}>
+          <TextWithTooltip stepName="body-sm">Next</TextWithTooltip>
+        </Button>
       </div>
     </div>
+    </TooltipProvider>
   );
 }
 
