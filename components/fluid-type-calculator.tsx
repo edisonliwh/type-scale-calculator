@@ -52,18 +52,18 @@ const SHADCN_TEXT_STYLES = [
   { name: "heading-4", fontSize: 20, fontWeight: 600, lineHeight: 1.4, letterSpacing: -0.025, category: "heading" },
   { name: "heading-5", fontSize: 18, fontWeight: 600, lineHeight: 1.5, letterSpacing: -0.025, category: "heading" },
   { name: "heading-6", fontSize: 16, fontWeight: 600, lineHeight: 1.5, letterSpacing: -0.025, category: "heading" },
-  // Body
+  // Body - body is 14px (0.88rem), body-sm and body-lg scaled using ratio 1.125
   { name: "body", fontSize: 14, fontWeight: 400, lineHeight: 1.5, letterSpacing: 0, category: "body" },
-  { name: "body-sm", fontSize: 12, fontWeight: 400, lineHeight: 1.25, letterSpacing: 0, category: "body" },
-  { name: "body-lg", fontSize: 18, fontWeight: 400, lineHeight: 1.75, letterSpacing: 0, category: "body" },
+  { name: "body-sm", fontSize: 12.44, fontWeight: 400, lineHeight: 1.25, letterSpacing: 0, category: "body" }, // 14 / 1.125
+  { name: "body-lg", fontSize: 15.75, fontWeight: 400, lineHeight: 1.75, letterSpacing: 0, category: "body" }, // 14 * 1.125
 ];
 
 // Default configuration
 const defaultConfig: FluidTypeConfig = {
   minWidth: 375,
   maxWidth: 1440,
-  minFontSize: 16,
-  maxFontSize: 16,
+  minFontSize: 14, // 14px (0.88rem)
+  maxFontSize: 14, // 14px (0.88rem)
   minRatio: 1.125,
   maxRatio: 1.125,
   steps: ["body-sm", "body", "body-lg", "heading-6", "heading-5", "heading-4", "heading-3", "heading-2", "heading-1"],
@@ -133,6 +133,7 @@ export function FluidTypeCalculator() {
   const [config, setConfig] = useState<FluidTypeConfig>(defaultConfig);
   const [isCopied, setIsCopied] = useState(false);
   const [crabEnabled, setCrabEnabled] = useState(false);
+  const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
   const mainContentRef = React.useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -300,10 +301,13 @@ export function FluidTypeCalculator() {
           
           {/* SECTION: BASE SETTINGS (Top) */}
           <div className="space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'oklch(0.708 0 0)' }}>Base</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider mb-2 flex justify-between items-center" style={{ color: 'oklch(0.708 0 0)' }}>
+              <span>Base</span>
+              <span className="normal-case font-normal">1rem=16px</span>
+            </h3>
              <div className="grid gap-3">
-                <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
-                    <Label className="text-sm font-medium text-gray-700 w-[100px] shrink-0">Font-size</Label>
+                <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-start">
+                    <Label className="text-sm font-medium text-gray-700 w-[100px] shrink-0 flex items-center h-9">Font-size</Label>
                     <div className="flex-1 min-w-0">
                         <div className="relative flex-1 min-w-0">
                             <Input 
@@ -314,7 +318,7 @@ export function FluidTypeCalculator() {
                             />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-600 font-medium">px</span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">1rem = {config.remValue}px • {config.maxFontSize}px = {(config.maxFontSize / config.remValue).toFixed(2)}rem</p>
+                        <p className="text-xs text-gray-500 mt-1 text-right">{(config.maxFontSize / config.remValue).toFixed(2)}rem</p>
                     </div>
                 </div>
 
@@ -648,7 +652,7 @@ export function FluidTypeCalculator() {
                      <div 
                         className={cn(
                             "max-w-[1200px] mx-auto transition-all duration-300 ease-out",
-                            config.previewMode === 'blog' ? "p-12 lg:p-16" : "p-4 lg:p-8"
+                            "p-5"
                         )}
                         style={{
                             fontFamily: `"${config.fontFamily}", sans-serif`,
@@ -658,10 +662,32 @@ export function FluidTypeCalculator() {
                         }}
                     >
                          {config.previewMode === 'blog' ? (
-                             <HeadingPreview steps={steps} config={config} />
+                             <>
+                                 <div className="mb-12">
+                                     <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'desktop' | 'mobile')} className="w-full">
+                                         <TabsList className="bg-transparent p-0 gap-6">
+                                             <TabsTrigger 
+                                                 value="desktop" 
+                                                 className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title" 
+                                                 style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}
+                                             >
+                                                 Desktop
+                                             </TabsTrigger>
+                                             <TabsTrigger 
+                                                 value="mobile" 
+                                                 className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title" 
+                                                 style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}
+                                             >
+                                                 Mobile
+                                             </TabsTrigger>
+                                         </TabsList>
+                                     </Tabs>
+                                 </div>
+                                 <HeadingPreview steps={steps} config={config} viewMode={viewMode} />
+                             </>
                          ) : (
                              <Tabs defaultValue="examples" className="w-full h-full">
-                                <div className="px-6 mb-8">
+                                <div className="mb-12">
                                     <div className="flex items-center justify-between space-y-2">
                                         <TabsList className="bg-transparent p-0 gap-6">
                                             <TabsTrigger value="examples" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title" style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}>Cards</TabsTrigger>
@@ -672,7 +698,7 @@ export function FluidTypeCalculator() {
                                         </TabsList>
                                     </div>
                                 </div>
-                                <div className="px-6 pb-20">
+                                <div className="pb-20">
                                     <TabsContent value="examples" className="mt-0 border-none p-0 outline-none">
                                         <ExamplesPreview steps={steps} config={config} />
                                     </TabsContent>
@@ -776,7 +802,7 @@ export function FluidTypeCalculator() {
 }
 
 // ... HeadingPreview and LandingPreview remain unchanged ...
-function HeadingPreview({ steps, config }: { steps: any[], config: FluidTypeConfig }) {
+function HeadingPreview({ steps, config, viewMode = 'desktop' }: { steps: any[], config: FluidTypeConfig, viewMode?: 'desktop' | 'mobile' }) {
     const isShadcn = config.maxRatio === "shadcn" || config.minRatio === "shadcn";
     
     // Helper function to determine category for a step
@@ -868,7 +894,7 @@ function HeadingPreview({ steps, config }: { steps: any[], config: FluidTypeConf
     };
 
     return (
-        <div className="space-y-12">
+        <div className={`space-y-12 ${viewMode === 'mobile' ? 'max-w-[375px] mx-auto' : ''}`}>
             {sortedGroupedSteps.map(([category, categorySteps]) => (
                 <div key={category} className="space-y-8">
                     {categoryLabels[category] && (
@@ -890,9 +916,12 @@ function HeadingPreview({ steps, config }: { steps: any[], config: FluidTypeConf
                                              <span>•</span>
                                              <span>{isShadcn
                                                     ? `${(step.fontSize / config.remValue).toFixed(2)}rem / ${step.fontSize.toFixed(2)}px`
-                                                    : config.useRems 
-                                                        ? `${(step.maxSize / config.remValue).toFixed(2)}-${(step.minSize / config.remValue).toFixed(2)}rem / ${step.maxSize.toFixed(2)}-${step.minSize.toFixed(2)}px`
-                                                        : `${step.maxSize.toFixed(0)}-${step.minSize.toFixed(0)}px`
+                                                    : (() => {
+                                                        const size = viewMode === 'desktop' ? step.maxSize : step.minSize;
+                                                        return config.useRems 
+                                                            ? `${(size / config.remValue).toFixed(2)}rem / ${size.toFixed(2)}px`
+                                                            : `${size.toFixed(0)}px`;
+                                                    })()
                                              }</span>
                                          </div>
                                          

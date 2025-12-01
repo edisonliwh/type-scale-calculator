@@ -76,12 +76,21 @@ export const calculateFluidType = (config: FluidTypeConfig): TypeStep[] => {
 
   const baseIndex = steps.indexOf(baseStep);
   
+  // For headings, use the old base (16px) to keep them unchanged
+  // For body text, use the new base (minFontSize/maxFontSize which is 0.88rem)
+  const headingBaseSize = 16; // Keep headings at original size
+  
   return steps.map((step, index) => {
     const power = index - baseIndex;
+    const isHeading = step.startsWith("heading-");
+    const isBody = step.startsWith("body");
     
     // Calculate min and max font sizes for this step
-    const minSizePx = minFontSize * Math.pow(minRatio, power);
-    const maxSizePx = maxFontSize * Math.pow(maxRatio, power);
+    // Use headingBaseSize for headings, minFontSize/maxFontSize for body
+    const baseMinSize = isHeading ? headingBaseSize : minFontSize;
+    const baseMaxSize = isHeading ? headingBaseSize : maxFontSize;
+    const minSizePx = baseMinSize * Math.pow(minRatio, power);
+    const maxSizePx = baseMaxSize * Math.pow(maxRatio, power);
     
     // Linear interpolation: y = mx + b
     const slope = (maxSizePx - minSizePx) / (maxWidth - minWidth);

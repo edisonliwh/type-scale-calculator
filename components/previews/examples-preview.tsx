@@ -78,12 +78,12 @@ export function ExamplesPreview({ steps, config }: ExamplesPreviewProps) {
   };
 
   return (
-    <div className="columns-1 lg:columns-2 xl:columns-3 gap-6 space-y-6 p-1 pb-20">
+    <div className="columns-1 lg:columns-2 xl:columns-3 gap-6 space-y-6 pb-20">
       {/* Card 1: Payment Method */}
       <Card className="break-inside-avoid shadow-sm">
         <CardHeader>
           <CardTitle style={getStyle("heading-4")}>Payment Method</CardTitle>
-          <CardDescription style={getStyle("body-sm")}>
+          <CardDescription style={getStyle("body")}>
             Add a new payment method to your account.
           </CardDescription>
         </CardHeader>
@@ -171,7 +171,7 @@ export function ExamplesPreview({ steps, config }: ExamplesPreviewProps) {
       <Card className="break-inside-avoid shadow-sm">
         <CardHeader>
           <CardTitle style={getStyle("heading-4")}>Team Members</CardTitle>
-          <CardDescription style={getStyle("body-sm")}>
+          <CardDescription style={getStyle("body")}>
             Invite your team members to collaborate.
           </CardDescription>
         </CardHeader>
@@ -225,7 +225,7 @@ export function ExamplesPreview({ steps, config }: ExamplesPreviewProps) {
       <Card className="break-inside-avoid shadow-sm">
         <CardHeader className="space-y-1">
           <CardTitle style={getStyle("heading-4")}>Create an account</CardTitle>
-          <CardDescription style={getStyle("body-sm")}>
+          <CardDescription style={getStyle("body")}>
             Enter your email below to create your account
           </CardDescription>
         </CardHeader>
@@ -260,7 +260,7 @@ export function ExamplesPreview({ steps, config }: ExamplesPreviewProps) {
        <Card className="break-inside-avoid shadow-sm">
         <CardHeader>
           <CardTitle style={getStyle("heading-4")}>Notifications</CardTitle>
-          <CardDescription style={getStyle("body-sm")}>
+          <CardDescription style={getStyle("body")}>
             Choose what you want to be notified about.
           </CardDescription>
         </CardHeader>
@@ -299,7 +299,7 @@ export function ExamplesPreview({ steps, config }: ExamplesPreviewProps) {
        <Card className="break-inside-avoid shadow-sm">
         <CardHeader>
           <CardTitle style={getStyle("heading-4")}>Report an issue</CardTitle>
-          <CardDescription style={getStyle("body-sm")}>
+          <CardDescription style={getStyle("body")}>
             What area are you having problems with?
           </CardDescription>
         </CardHeader>
