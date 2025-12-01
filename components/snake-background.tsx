@@ -120,14 +120,13 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle }: Snak
     };
     foodRef.current = { ...food }; // Initialize ref
     
-    // Home positions (4 corners with 40px padding) - update when dimensions change
+    // Home positions (bottom corners with 40px padding) - update when dimensions change
     const paddingCells = Math.ceil(40 / cellSize); // Convert 40px to cells
     const homes: Position[] = [
-      { x: paddingCells, y: paddingCells }, // Top-left
       { x: paddingCells, y: rows - 1 - paddingCells }, // Bottom-left
       { x: cols - 1 - paddingCells, y: rows - 1 - paddingCells } // Bottom-right
     ];
-    homeRef.current = homes[0]; // Store first home for ref (we'll check all 4)
+    homeRef.current = homes[0]; // Store first home for ref (we'll check all homes)
     
     let currentScore = 0;
     const baseSpeed = 150; // milliseconds (current speed)
@@ -139,7 +138,6 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle }: Snak
         let newFood: Position & { emoji: string };
         const paddingCells = Math.ceil(40 / cellSize); // Convert 40px to cells
         const homes: Position[] = [
-          { x: paddingCells, y: paddingCells }, // Top-left
           { x: paddingCells, y: rows - 1 - paddingCells }, // Bottom-left
           { x: cols - 1 - paddingCells, y: rows - 1 - paddingCells } // Bottom-right
         ];
@@ -307,10 +305,9 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle }: Snak
       // Clear canvas (no background fill, grid is on page background)
       ctx.clearRect(0, 0, dimensions.width, dimensions.height);
 
-      // Draw home emojis on 4 corners with 40px padding
+      // Draw home emojis on bottom corners with 40px padding
       const paddingCells = Math.ceil(40 / cellSize); // Convert 40px to cells
       const homes: Position[] = [
-        { x: paddingCells, y: paddingCells }, // Top-left
         { x: paddingCells, y: rows - 1 - paddingCells }, // Bottom-left
         { x: cols - 1 - paddingCells, y: rows - 1 - paddingCells } // Bottom-right
       ];
@@ -441,7 +438,6 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle }: Snak
         const cellSize = cellSizeRef.current;
         const paddingCells = Math.ceil(40 / cellSize); // Convert 40px to cells
         const homes: Position[] = [
-          { x: paddingCells, y: paddingCells }, // Top-left
           { x: paddingCells, y: rows - 1 - paddingCells }, // Bottom-left
           { x: cols - 1 - paddingCells, y: rows - 1 - paddingCells } // Bottom-right
         ];
@@ -515,7 +511,7 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle }: Snak
     <>
       {/* Toggle - Always Visible */}
       <div className="absolute top-4 right-4 z-50">
-        <div className="relative rounded-2xl flex flex-col transition-all bg-white focus-visible:ring-0" style={{ boxShadow: "rgba(50, 50, 93, 0.15) 0px 2px 5px -1px, rgba(0, 0, 0, 0.2) 0px 1px 3px -1px" }}>
+        <div className="relative rounded-2xl flex flex-col transition-all bg-white/80 backdrop-blur-xl focus-visible:ring-0" style={{ boxShadow: "rgba(50, 50, 93, 0.15) 0px 2px 5px -1px, rgba(0, 0, 0, 0.2) 0px 1px 3px -1px" }}>
           <div className="px-3 py-2 overflow-hidden rounded-2xl">
             <div className="flex items-center gap-2">
               <Switch
@@ -524,8 +520,9 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle }: Snak
                 onCheckedChange={onToggle}
                 className="[&[data-state=checked]]:!bg-[oklch(64.6%_0.222_41.116)]"
               />
-              <Label htmlFor="crab-toggle" className="text-sm font-medium text-gray-600 cursor-pointer whitespace-nowrap font-title" style={{ fontSize: '14px' }}>
-                🦀 Hungry crab
+              <Label htmlFor="crab-toggle" className="text-sm font-medium text-gray-600 cursor-pointer whitespace-nowrap font-title flex items-center gap-1" style={{ fontSize: '14px' }}>
+                <span>🦀</span>
+                <span className="hidden lg:inline">Hungry crab</span>
               </Label>
             </div>
           </div>
@@ -546,14 +543,14 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle }: Snak
               {/* Badges and Tip - Top Right Below Toggle */}
               <div className="absolute top-[86px] right-4 z-50 flex flex-col items-end gap-2">
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-white text-gray-700 font-title focus-visible:ring-0" style={{ fontSize: '14px', padding: '6px 14px', boxShadow: "rgba(50, 50, 93, 0.15) 0px 2px 5px -1px, rgba(0, 0, 0, 0.2) 0px 1px 3px -1px" }}>
+                  <Badge className="bg-white/80 backdrop-blur-xl text-gray-700 font-title focus-visible:ring-0" style={{ fontSize: '14px', padding: '6px 14px', boxShadow: "rgba(50, 50, 93, 0.15) 0px 2px 5px -1px, rgba(0, 0, 0, 0.2) 0px 1px 3px -1px" }}>
                     🦀 {score}
                   </Badge>
-                  <Badge className="bg-white text-gray-700 font-title focus-visible:ring-0" style={{ fontSize: '14px', padding: '6px 14px', boxShadow: "rgba(50, 50, 93, 0.15) 0px 2px 5px -1px, rgba(0, 0, 0, 0.2) 0px 1px 3px -1px" }}>
+                  <Badge className="bg-white/80 backdrop-blur-xl text-gray-700 font-title focus-visible:ring-0" style={{ fontSize: '14px', padding: '6px 14px', boxShadow: "rgba(50, 50, 93, 0.15) 0px 2px 5px -1px, rgba(0, 0, 0, 0.2) 0px 1px 3px -1px" }}>
                     🏡 {homeCount}
                   </Badge>
                 </div>
-                <p className="text-gray-500 text-right" style={{ fontFamily: 'var(--font-geist-mono), monospace', fontSize: '12px', lineHeight: '1.4' }}>
+                <p className="text-gray-500 text-right hidden 2xl:block" style={{ fontFamily: 'var(--font-geist-sans), sans-serif', fontSize: '12px', lineHeight: '1.4' }}>
                   <span className="block">Tip: Use keys ← ↑ → ↓</span>
                   <span className="block">to move food to 🏡</span>
                 </p>

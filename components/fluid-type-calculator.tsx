@@ -84,8 +84,8 @@ const defaultConfig: FluidTypeConfig = {
   backgroundColor: "#ffffff",
 
   // Heading Font Settings
-  headingFontFamily: "inherit",
-  headingFontWeight: 700,
+  headingFontFamily: "Inter",
+  headingFontWeight: 600,
   headingLineHeight: 1.1,
   headingLetterSpacing: -0.02,
   headingColor: "inherit",
@@ -223,9 +223,9 @@ export function FluidTypeCalculator() {
       }}
     >
       {/* Snake game will be rendered inside the main content area */}
-      <div className="flex flex-col lg:flex-row flex-1 p-3 gap-3 min-h-0">
+      <div className="flex flex-row flex-1 p-3 gap-3 min-h-0 overflow-hidden">
       {/* View Switcher - Stamp Style - Right Edge of Sidebar (Outside) */}
-      <div className="absolute left-[310px] top-[84px] z-20 flex flex-col hidden lg:flex">
+      <div className="absolute left-[290px] top-[84px] z-20 flex flex-col">
           <button
               onClick={() => handleInputChange('previewMode', 'blog')}
               className={cn(
@@ -287,7 +287,7 @@ export function FluidTypeCalculator() {
       </div>
       
       {/* LEFT SIDEBAR: CONTROLS - MacOS Style */}
-      <aside className="relative z-30 w-full lg:w-[300px] flex-shrink-0 rounded-2xl backdrop-blur-xl flex flex-col h-full overflow-hidden transition-all bg-white/80" style={{ boxShadow: "rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px" }}>
+      <aside className="relative z-30 w-[280px] flex-shrink-0 rounded-2xl backdrop-blur-xl flex flex-col h-full overflow-hidden transition-all bg-white/80" style={{ boxShadow: "rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px" }}>
         
         {/* Header */}
         <div className="p-5 border-b border-black/5 flex items-center gap-3 shrink-0">
@@ -637,7 +637,7 @@ export function FluidTypeCalculator() {
       </aside>
 
       {/* RIGHT MAIN: PREVIEW */}
-      <main ref={mainContentRef} className="flex-1 flex flex-col h-full overflow-hidden relative">
+      <main ref={mainContentRef} className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
         {/* Snake Background - Only in main content area */}
         <SnakeBackground containerRef={mainContentRef} enabled={crabEnabled} onToggle={setCrabEnabled} />
          {/* Content Area */}
@@ -672,6 +672,7 @@ export function FluidTypeCalculator() {
                                             <TabsTrigger value="dashboard" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title" style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}>Dashboard</TabsTrigger>
                                             <TabsTrigger value="tasks" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title" style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}>Tasks</TabsTrigger>
                                             <TabsTrigger value="landing" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title" style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}>Landing</TabsTrigger>
+                                            <TabsTrigger value="article" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title" style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}>Article</TabsTrigger>
                                         </TabsList>
                                     </div>
                                 </div>
@@ -697,6 +698,13 @@ export function FluidTypeCalculator() {
                                         <Card>
                                             <CardContent className="p-0">
                                                 <LandingPreview steps={steps} config={config} />
+                                            </CardContent>
+                                        </Card>
+                                    </TabsContent>
+                                    <TabsContent value="article" className="mt-0 border-none p-0 outline-none">
+                                        <Card>
+                                            <CardContent className="p-0">
+                                                <ArticlePreview steps={steps} config={config} />
                                             </CardContent>
                                         </Card>
                                     </TabsContent>
@@ -901,6 +909,236 @@ function HeadingPreview({ steps, config }: { steps: any[], config: FluidTypeConf
     );
 }
 
+function ArticlePreview({ steps, config }: { steps: any[], config: FluidTypeConfig }) {
+    const isShadcn = config.maxRatio === "shadcn" || config.minRatio === "shadcn";
+    
+    const getStyle = (stepName: string) => {
+        const mappedStepName = isShadcn && STEP_NAME_MAP[stepName] ? STEP_NAME_MAP[stepName] : stepName;
+        const step = steps.find(s => s.name === mappedStepName);
+        if (!step) return {};
+
+        if (isShadcn && step.fontSize) {
+            const isBody = step.category === "body";
+            return {
+                fontSize: `${step.fontSize}px`,
+                fontWeight: step.fontWeight || config.fontWeight,
+                lineHeight: step.lineHeight || config.lineHeight,
+                letterSpacing: `${step.letterSpacing || 0}em`,
+                ...(isBody ? {} : {
+                    fontFamily: config.headingFontFamily === "inherit" ? "inherit" : `"${config.headingFontFamily}", sans-serif`,
+                    color: config.headingColor === "inherit" ? "inherit" : config.headingColor,
+                }),
+            };
+        }
+        
+        const isBody = ["body-sm", "body", "body-lg"].includes(stepName);
+        const headingStyle = isBody
+            ? {}
+            : {
+                fontFamily:
+                    config.headingFontFamily === "inherit"
+                        ? "inherit"
+                        : `"${config.headingFontFamily}", sans-serif`,
+                fontWeight: config.headingFontWeight,
+                lineHeight: config.headingLineHeight,
+                letterSpacing: `${config.headingLetterSpacing}em`,
+                color: config.headingColor === "inherit" ? "inherit" : config.headingColor,
+            };
+
+        return {
+            fontSize: step?.clamp,
+            ...headingStyle,
+        };
+    };
+
+    return (
+        <div className="space-y-8 px-8 py-12 max-w-3xl mx-auto">
+            <article>
+                <h1 style={getStyle('heading-1')} className="mb-4">
+                    The silent symphony of type and sound
+                </h1>
+
+                <div className="mb-8 pb-6 border-b border-gray-200" style={getStyle('body-sm')}>
+                    <p className="text-gray-600">
+                        By <span className="font-medium text-gray-900">Owen Gregory</span> • Source: <a href="https://24ways.org/2011/composing-the-new-canon" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">24 ways: Composing the New Canon</a>
+                    </p>
+                </div>
+
+                <h2 style={getStyle('heading-2')} className="mb-6">
+                    A world where letters breathe like music
+                </h2>
+
+                <h5 style={getStyle('heading-5')} className="mb-4">
+                    The page as a musical staff
+                </h5>
+
+                <p style={getStyle('body')} className="mb-6">
+                    In a quiet atelier where letters live like notes on a staff, the realm of typography hums with invisible music. Every lowercase "a," every bold headline and tiny footnote is a single tone, waiting to be woven into a chord. In this world, the text on the page is the melody, and the layout is its harmony.
+                </p>
+
+                <h5 style={getStyle('heading-5')} className="mb-4">
+                    Margins as rests and breath
+                </h5>
+
+                <p style={getStyle('body')} className="mb-6">
+                    Margins are not emptiness. They are the pauses between phrases. Just as a musician must breathe between measures, a reader needs silence between blocks of meaning. Left margins steady the rhythm. Bottom margins let the final note linger.
+                </p>
+
+                <h5 style={getStyle('heading-5')} className="mb-4">
+                    Line length as melodic phrasing
+                </h5>
+
+                <p style={getStyle('body')} className="mb-8">
+                    A short line cuts like staccato. A long line stretches like legato. The measure of a paragraph determines whether the eye dances quickly or glides slowly. Good line length does not shout. It sings.
+                </p>
+
+                <h2 style={getStyle('heading-2')} className="mb-6">
+                    Harmony through proportion
+                </h2>
+
+                <h5 style={getStyle('heading-5')} className="mb-4">
+                    Ratios as musical intervals
+                </h5>
+
+                <p style={getStyle('body')} className="mb-6">
+                    In this atelier, designers do not choose font size or margin at random. They reach into the lineage of music: ratios like 2:3, 3:4, 3:5, 1:2. They treat these not as abstract numbers, but as living intervals.
+                </p>
+
+                <h5 style={getStyle('heading-5')} className="mb-4">
+                    Type scale as chord progression
+                </h5>
+
+                <p style={getStyle('body')} className="mb-6">
+                    When body text breathes at a 2:3 rhythm, it becomes a perfect fifth. A heading that doubles in size becomes an octave. A caption at three-quarters of the base size becomes a perfect fourth. The typographic scale stops being mechanical and starts behaving like harmony in motion.
+                </p>
+
+                <h5 style={getStyle('heading-5')} className="mb-4">
+                    Vertical rhythm as time signature
+                </h5>
+
+                <p style={getStyle('body')} className="mb-8">
+                    Line height, spacing between paragraphs, and spacing between sections form a time signature for the page. Too tight and the music rushes. Too loose and the song loses tension. Good rhythm makes time feel natural.
+                </p>
+
+                <blockquote className="my-8 pl-6 border-l-4 border-gray-300">
+                    <p style={getStyle('body-lg')} className="mb-2 italic">
+                        "Proportion is not decoration. It is structure that the eye can hear."
+                    </p>
+                    <p style={getStyle('body-sm')} className="text-gray-600">
+                        anonymous designer
+                    </p>
+                </blockquote>
+
+                <h2 style={getStyle('heading-2')} className="mb-6">
+                    Devices as instruments
+                </h2>
+
+                <h5 style={getStyle('heading-5')} className="mb-4">
+                    Screen size as resonance chamber
+                </h5>
+
+                <p style={getStyle('body')} className="mb-6">
+                    A narrow phone compresses the sound. A wide desktop lets it expand. The same composition vibrates differently inside different physical containers, just like the same melody played in a small room versus a cathedral.
+                </p>
+
+                <h5 style={getStyle('heading-5')} className="mb-4">
+                    Orientation as key change
+                </h5>
+
+                <p style={getStyle('body')} className="mb-6">
+                    Portrait and landscape are not just rotations. They are modulations. The same content shifts emotional weight when the axis changes. What felt intimate becomes expansive. What felt commanding becomes personal.
+                </p>
+
+                <h5 style={getStyle('heading-5')} className="mb-4">
+                    Responsive design as changing tempo
+                </h5>
+
+                <p style={getStyle('body')} className="mb-8">
+                    Breakpoints are tempo changes. The rhythm tightens on small screens and relaxes on larger ones. The challenge is not to freeze the design, but to let it breathe without breaking the song.
+                </p>
+
+                <blockquote className="my-8 pl-6 border-l-4 border-gray-300">
+                    <p style={getStyle('body-lg')} className="mb-2 italic">
+                        "A good composition survives the change of instruments."
+                    </p>
+                    <p style={getStyle('body-sm')} className="text-gray-600">
+                        adapted from musical theory
+                    </p>
+                </blockquote>
+
+                <h2 style={getStyle('heading-2')} className="mb-6">
+                    Dissonance and emotional gravity
+                </h2>
+
+                <h5 style={getStyle('heading-5')} className="mb-4">
+                    When layout becomes noise
+                </h5>
+
+                <p style={getStyle('body')} className="mb-6">
+                    A cramped line height becomes a rushed tempo. A headline pressed too close to body text becomes a collision of sounds. The layout still functions, but it no longer flows. The page begins to shout instead of speak.
+                </p>
+
+                <h5 style={getStyle('heading-5')} className="mb-4">
+                    Visual clutter as harmonic distortion
+                </h5>
+
+                <p style={getStyle('body')} className="mb-6">
+                    Too many weights, too many sizes, too many colors collapse into visual distortion. The eye cannot separate voices. The melody disappears into static.
+                </p>
+
+                <h5 style={getStyle('heading-5')} className="mb-4">
+                    Tuned silence as emotional control
+                </h5>
+
+                <p style={getStyle('body')} className="mb-8">
+                    White space calibrated with care becomes emotional gravity. It slows the reader without force. It gives seriousness weight and gives lightness air. Silence, once tuned, becomes expressive.
+                </p>
+
+                <h2 style={getStyle('heading-2')} className="mb-6">
+                    The reader as the final listener
+                </h2>
+
+                <h5 style={getStyle('heading-5')} className="mb-4">
+                    Perception without awareness
+                </h5>
+
+                <p style={getStyle('body')} className="mb-6">
+                    The reader never measures ratios. The reader never names intervals. They only feel balance. They scroll. They pause. They breathe between sections without realizing the layout is guiding them.
+                </p>
+
+                <h5 style={getStyle('heading-5')} className="mb-4">
+                    Reading as a temporal act
+                </h5>
+
+                <p style={getStyle('body')} className="mb-6">
+                    Typography unfolds in time, not space. Meaning is not consumed all at once. It is played. The reader passes through introduction, tension, resolution, and release just like a listener moves through movements in a piece of music.
+                </p>
+
+                <h5 style={getStyle('heading-5')} className="mb-4">
+                    Memory as the echo of design
+                </h5>
+
+                <p style={getStyle('body')} className="mb-8">
+                    When the page is closed, something remains. Not the text. Not the pixels. But the sensation of ease, clarity, or strain. The emotional residue of rhythm.
+                </p>
+
+                <blockquote className="my-8 pl-6 border-l-4 border-gray-300">
+                    <p style={getStyle('body-lg')} className="mb-2 italic">
+                        "The reader hears with their eyes."
+                    </p>
+                    <p style={getStyle('body-sm')} className="text-gray-600">
+                        typographic folklore
+                    </p>
+                </blockquote>
+
+                <p style={getStyle('body')} className="mb-8">
+                    The tab closes. The sound stops. But something lingers — a faint afterimage of rhythm, a soft memory of harmony. The page is gone, yet its resonance remains.
+                </p>
+            </article>
+        </div>
+    );
+}
+
 function LandingPreview({ steps, config }: { steps: any[], config: FluidTypeConfig }) {
     const isShadcn = config.maxRatio === "shadcn" || config.minRatio === "shadcn";
     
@@ -944,7 +1182,7 @@ function LandingPreview({ steps, config }: { steps: any[], config: FluidTypeConf
     };
 
     return (
-        <div className="space-y-24 px-8 py-2">
+        <div className="space-y-24 px-8 py-12">
              <section className="space-y-6">
                  <span style={getStyle('body-sm')} className="uppercase tracking-widest font-bold text-gray-600">Introducing Fluid Scale</span>
                  <h1 style={{ ...getStyle('heading-1'), fontWeight: config.headingFontWeight }}>

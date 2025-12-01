@@ -78,7 +78,7 @@ export function ExamplesPreview({ steps, config }: ExamplesPreviewProps) {
   };
 
   return (
-    <div className="columns-1 md:columns-2 xl:columns-3 gap-6 space-y-6 p-1 pb-20">
+    <div className="columns-1 lg:columns-2 xl:columns-3 gap-6 space-y-6 p-1 pb-20">
       {/* Card 1: Payment Method */}
       <Card className="break-inside-avoid shadow-sm">
         <CardHeader>
