@@ -241,8 +241,8 @@ export function FluidTypeCalculator() {
                   borderColor: 'rgba(0, 0, 0, 0.15)',
                   borderStyle: config.previewMode === 'blog' ? 'solid' : 'dashed',
                   backgroundColor: config.previewMode === 'blog' 
-                      ? 'rgba(247, 254, 231, 0.9)' // lime-50 with 90% opacity when active
-                      : 'rgba(247, 254, 231, 0.6)', // lime-50 with 60% opacity when inactive
+                      ? 'rgba(238, 242, 255, 0.9)' // indigo-50 with 90% opacity when active
+                      : 'rgba(238, 242, 255, 0.6)', // indigo-50 with 60% opacity when inactive
                   boxShadow: config.previewMode === 'blog' 
                       ? "rgba(0, 0, 0, 0.1) 0px 2px 8px 0px, rgba(0, 0, 0, 0.05) 0px 1px 3px 0px"
                       : "rgba(0, 0, 0, 0.05) 0px 1px 3px 0px"
@@ -250,7 +250,7 @@ export function FluidTypeCalculator() {
           >
               <span className={cn(
                   "font-title font-bold text-xs uppercase tracking-wider transform rotate-90 whitespace-nowrap",
-                  config.previewMode === 'blog' ? "text-lime-700" : "text-lime-600"
+                  config.previewMode === 'blog' ? "text-indigo-700" : "text-indigo-600"
               )}>
                   TYPE
               </span>
@@ -270,8 +270,8 @@ export function FluidTypeCalculator() {
                   borderColor: 'rgba(0, 0, 0, 0.15)',
                   borderStyle: config.previewMode === 'landing' ? 'solid' : 'dashed',
                   backgroundColor: config.previewMode === 'landing' 
-                      ? 'rgba(238, 242, 255, 0.9)' // indigo-50 with 90% opacity when active
-                      : 'rgba(238, 242, 255, 0.6)', // indigo-50 with 60% opacity when inactive
+                      ? 'rgba(247, 254, 231, 0.9)' // lime-50 with 90% opacity when active
+                      : 'rgba(247, 254, 231, 0.6)', // lime-50 with 60% opacity when inactive
                   boxShadow: config.previewMode === 'landing' 
                       ? "rgba(0, 0, 0, 0.1) 0px 2px 8px 0px, rgba(0, 0, 0, 0.05) 0px 1px 3px 0px"
                       : "rgba(0, 0, 0, 0.05) 0px 1px 3px 0px"
@@ -279,7 +279,7 @@ export function FluidTypeCalculator() {
           >
               <span className={cn(
                   "font-title font-bold text-xs uppercase tracking-wider transform rotate-90 whitespace-nowrap",
-                  config.previewMode === 'landing' ? "text-indigo-700" : "text-indigo-600"
+                  config.previewMode === 'landing' ? "text-lime-700" : "text-lime-600"
               )}>
                   PREVIEW
               </span>
