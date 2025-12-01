@@ -555,8 +555,8 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle }: Snak
                   </Badge>
                 </div>
                 <p className="text-gray-500 text-right" style={{ fontFamily: 'var(--font-geist-mono), monospace', fontSize: '12px', lineHeight: '1.4' }}>
-                  <span className="block">Tip: Use arrows ←↑→↓</span>
-                  <span className="block">on the keyboard to move food</span>
+                  <span className="block">Tip: Use keys ← ↑ → ↓</span>
+                  <span className="block">to move food to 🏡</span>
                 </p>
               </div>
       
