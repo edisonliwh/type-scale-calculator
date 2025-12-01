@@ -77,7 +77,7 @@ export function TasksPreview({ steps, config }: TasksPreviewProps) {
     return foodEmojis[Math.floor(Math.random() * foodEmojis.length)];
   };
 
-  const TextWithTooltip = ({ stepName, children, className = "", style, as: Component = "span" }: { stepName: string; children: React.ReactNode; className?: string; style?: React.CSSProperties; as?: keyof JSX.IntrinsicElements }) => {
+  const TextWithTooltip = ({ stepName, children, className = "", style, as: Component = "span" }: { stepName: string; children: React.ReactNode; className?: string; style?: React.CSSProperties; as?: React.ElementType }) => {
     const isShadcn = config.maxRatio === "shadcn" || config.minRatio === "shadcn";
     const mappedStepName = isShadcn && STEP_NAME_MAP[stepName] ? STEP_NAME_MAP[stepName] : stepName;
     

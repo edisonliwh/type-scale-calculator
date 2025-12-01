@@ -1020,7 +1020,7 @@ function ArticlePreview({ steps, config }: { steps: any[], config: FluidTypeConf
         return foodEmojis[Math.floor(Math.random() * foodEmojis.length)];
     };
 
-    const TextWithTooltip = ({ stepName, children, className = "", style, as: Component = "span" }: { stepName: string; children: React.ReactNode; className?: string; style?: React.CSSProperties; as?: keyof JSX.IntrinsicElements }) => {
+    const TextWithTooltip = ({ stepName, children, className = "", style, as: Component = "span" }: { stepName: string; children: React.ReactNode; className?: string; style?: React.CSSProperties; as?: React.ElementType }) => {
         const mappedStepName = getMappedStepName(stepName);
         return (
             <Tooltip>
@@ -1275,7 +1275,7 @@ function LandingPreview({ steps, config }: { steps: any[], config: FluidTypeConf
         return foodEmojis[Math.floor(Math.random() * foodEmojis.length)];
     };
 
-    const TextWithTooltip = ({ stepName, children, className = "", style, as: Component = "span" }: { stepName: string; children: React.ReactNode; className?: string; style?: React.CSSProperties; as?: keyof JSX.IntrinsicElements }) => {
+    const TextWithTooltip = ({ stepName, children, className = "", style, as: Component = "span" }: { stepName: string; children: React.ReactNode; className?: string; style?: React.CSSProperties; as?: React.ElementType }) => {
         const mappedStepName = getMappedStepName(stepName);
         return (
             <Tooltip>
