@@ -91,7 +91,7 @@ export function DashboardPreview({ steps, config }: DashboardPreviewProps) {
         </TabsList>
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
+            <Card className="shadow-none">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="font-medium" style={getStyle("heading-6")}>
                   Total Revenue
@@ -105,7 +105,7 @@ export function DashboardPreview({ steps, config }: DashboardPreviewProps) {
                 </p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="shadow-none">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="font-medium" style={getStyle("heading-6")}>
                   Subscriptions
@@ -119,7 +119,7 @@ export function DashboardPreview({ steps, config }: DashboardPreviewProps) {
                 </p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="shadow-none">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="font-medium" style={getStyle("heading-6")}>
                   Sales
@@ -133,7 +133,7 @@ export function DashboardPreview({ steps, config }: DashboardPreviewProps) {
                 </p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="shadow-none">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="font-medium" style={getStyle("heading-6")}>
                   Active Now
@@ -149,7 +149,7 @@ export function DashboardPreview({ steps, config }: DashboardPreviewProps) {
             </Card>
           </div>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            <Card className="col-span-4">
+            <Card className="col-span-4 shadow-none">
               <CardHeader>
                 <CardTitle style={getStyle("heading-5")}>Overview</CardTitle>
               </CardHeader>
@@ -159,7 +159,7 @@ export function DashboardPreview({ steps, config }: DashboardPreviewProps) {
                   </div>
               </CardContent>
             </Card>
-            <Card className="col-span-3">
+            <Card className="col-span-3 shadow-none">
               <CardHeader>
                 <CardTitle style={getStyle("heading-5")}>Recent Sales</CardTitle>
                 <CardDescription style={getStyle("body-sm")}>
