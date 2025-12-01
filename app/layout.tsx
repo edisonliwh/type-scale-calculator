@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Type scale calculator",
-  description: "Create beautiful, responsive type scales that work seamlessly across mobile, tablet, and desktop screens",
+  description: "A type scale tool that works.",
 };
 
 export default function RootLayout({
