@@ -520,7 +520,7 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle }: Snak
                 onCheckedChange={onToggle}
                 className="[&[data-state=checked]]:!bg-[oklch(64.6%_0.222_41.116)]"
               />
-              <Label htmlFor="crab-toggle" className="text-sm font-medium text-gray-600 cursor-pointer whitespace-nowrap font-title flex items-center gap-1" style={{ fontSize: '14px' }}>
+              <Label htmlFor="crab-toggle" className="text-sm font-medium text-gray-600 cursor-pointer whitespace-nowrap font-title flex items-center gap-1" style={{ fontSize: '13px' }}>
                 <span>🦀</span>
                 <span className="hidden lg:inline">Hungry crab</span>
               </Label>
