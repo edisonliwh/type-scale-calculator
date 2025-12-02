@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react";
+import React, { useMemo } from "react";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -146,6 +146,14 @@ export function StyleMappingPanel({
     }
     
     // Specific heading levels
+    // Article view: H2 uses heading-3, H3 uses heading-6
+    if (elementId === "article-heading-2") {
+      return "heading-3";
+    }
+    if (elementId === "article-heading-3") {
+      return "heading-6";
+    }
+    // Other heading-2 and heading-3 elements
     if (elementId.includes("heading-2")) {
       return "heading-2";
     }
@@ -241,6 +249,15 @@ export function StyleMappingPanel({
     // Default to body for everything else
     return "body";
   };
+  
+  // Check if any mappings differ from defaults
+  const hasChanges = useMemo(() => {
+    return filteredElements.some((element) => {
+      const currentStep = styleMappings[element.id];
+      const defaultStep = getDefaultStepName(element.id);
+      return currentStep !== undefined && currentStep !== defaultStep;
+    });
+  }, [styleMappings, filteredElements]);
 
   const getPanelTitle = () => {
     switch (activeTab) {
@@ -260,7 +277,61 @@ export function StyleMappingPanel({
   };
 
   return (
-    <aside className="relative z-30 w-[280px] flex-shrink-0 rounded-2xl backdrop-blur-xl flex flex-col h-full overflow-hidden transition-all bg-white/80" style={{ boxShadow: "rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px" }}>
+    <>
+      <style jsx global>{`
+        @keyframes panelSlideIn {
+          0% {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          100% {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        @keyframes panelSlideOut {
+          0% {
+            transform: translateX(0);
+            opacity: 1;
+          }
+          100% {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+        }
+        @keyframes panelGlow {
+          0% {
+            box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px, rgba(99, 102, 241, 0) 0px 0px 0px 0px, rgba(168, 85, 247, 0) 0px 0px 0px 0px;
+          }
+          25% {
+            box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px, rgba(99, 102, 241, 0.4) 0px 0px 60px 15px, rgba(168, 85, 247, 0.2) 0px 0px 40px 10px;
+          }
+          50% {
+            box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px, rgba(168, 85, 247, 0.4) 0px 0px 60px 15px, rgba(99, 102, 241, 0.2) 0px 0px 40px 10px;
+          }
+          75% {
+            box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px, rgba(99, 102, 241, 0.4) 0px 0px 60px 15px, rgba(168, 85, 247, 0.2) 0px 0px 40px 10px;
+          }
+          100% {
+            box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px, rgba(99, 102, 241, 0) 0px 0px 0px 0px, rgba(168, 85, 247, 0) 0px 0px 0px 0px;
+          }
+        }
+        @keyframes shimmer {
+          0% {
+            background-position: -200% 0;
+          }
+          100% {
+            background-position: 200% 0;
+          }
+        }
+        .style-panel-enter {
+          animation: panelSlideIn 0.3s ease-out forwards;
+        }
+        .style-panel-exit {
+          animation: panelSlideOut 0.25s ease-in forwards;
+        }
+      `}</style>
+      <aside className="relative z-30 w-[280px] flex-shrink-0 rounded-2xl backdrop-blur-xl flex flex-col h-full overflow-hidden bg-white/80 style-panel-enter" style={{ boxShadow: "rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px", transformStyle: "preserve-3d" }}>
       {/* Header */}
       <div className="p-5 border-b border-black/5 flex items-center justify-between shrink-0">
         <span className="font-semibold text-base text-gray-900">
@@ -312,10 +383,12 @@ export function StyleMappingPanel({
           </div>
         )}
         {onRestoreDefaults && filteredElements.length > 0 && (
-          <div className="pt-4 border-t border-black/5 mt-auto">
+          <div className="pt-4 mt-auto">
             <Button
               onClick={onRestoreDefaults}
+              variant="outline"
               className="w-full"
+              disabled={!hasChanges}
             >
               Restore default
             </Button>
@@ -323,5 +396,6 @@ export function StyleMappingPanel({
         )}
       </div>
     </aside>
+    </>
   );
 }

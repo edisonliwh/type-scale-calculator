@@ -27,6 +27,7 @@ import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -139,6 +140,8 @@ export function FluidTypeCalculator() {
   const [previewTab, setPreviewTab] = useState<'examples' | 'dashboard' | 'tasks' | 'landing' | 'article'>('examples');
   const [styleMappings, setStyleMappings] = useState<StyleMappings>({});
   const [showStyleMappingPanel, setShowStyleMappingPanel] = useState(false);
+  const [roundToWholeNumber, setRoundToWholeNumber] = useState(true);
+  const [roundLineHeightToMultipleOf4, setRoundLineHeightToMultipleOf4] = useState(true);
   const mainContentRef = React.useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -236,13 +239,28 @@ export function FluidTypeCalculator() {
     setTimeout(() => setIsCopied(false), 2000);
   };
 
+  // Check if config matches default
+  const isConfigDefault = useMemo(() => {
+    const configMatches = JSON.stringify(config) === JSON.stringify(defaultConfig);
+    const togglesMatch = roundToWholeNumber === true && roundLineHeightToMultipleOf4 === true;
+    return configMatches && togglesMatch;
+  }, [config, roundToWholeNumber, roundLineHeightToMultipleOf4]);
+
   // Helper for scale select items to handle custom values if needed (simplified for now)
   const renderScaleOptions = () => {
-      return RATIOS.map((r) => (
-        <SelectItem key={r.name} value={r.value.toString()}>
-            {typeof r.value === 'number' ? `${r.value.toFixed(3)} – ${r.name}` : r.name}
-        </SelectItem>
-      ));
+      return RATIOS.map((r, index) => {
+        const isShadcn = r.value === "shadcn";
+        const isLastBeforeShadcn = index > 0 && RATIOS[index - 1].value !== "shadcn" && isShadcn;
+        
+        return (
+          <React.Fragment key={r.name}>
+            {isLastBeforeShadcn && <SelectSeparator />}
+            <SelectItem value={r.value.toString()}>
+                {typeof r.value === 'number' ? `${r.value.toFixed(3)} – ${r.name}` : r.name}
+            </SelectItem>
+          </React.Fragment>
+        );
+      });
   };
 
   return (
@@ -275,10 +293,15 @@ export function FluidTypeCalculator() {
                       : "rgba(0, 0, 0, 0.05) 0px 1px 3px 0px"
               }}
           >
-              <span className={cn(
-                  "font-title font-bold text-xs uppercase tracking-wider transform rotate-90 whitespace-nowrap",
-                  config.previewMode === 'blog' ? "text-indigo-700" : "text-indigo-600"
-              )}>
+              <span 
+                  className={cn(
+                      "font-title font-bold text-xs uppercase tracking-wider transform rotate-90 whitespace-nowrap",
+                      config.previewMode === 'blog' ? "text-indigo-700" : "text-indigo-600"
+                  )}
+                  style={{
+                      opacity: config.previewMode === 'blog' ? 1 : 0.7 // 70% opacity when inactive
+                  }}
+              >
                   TYPE
               </span>
           </button>
@@ -304,10 +327,15 @@ export function FluidTypeCalculator() {
                       : "rgba(0, 0, 0, 0.05) 0px 1px 3px 0px"
               }}
           >
-              <span className={cn(
-                  "font-title font-bold text-xs uppercase tracking-wider transform rotate-90 whitespace-nowrap",
-                  config.previewMode === 'landing' ? "text-lime-700" : "text-lime-600"
-              )}>
+              <span 
+                  className={cn(
+                      "font-title font-bold text-xs uppercase tracking-wider transform rotate-90 whitespace-nowrap",
+                      config.previewMode === 'landing' ? "text-lime-700" : "text-lime-600"
+                  )}
+                  style={{
+                      opacity: config.previewMode === 'landing' ? 1 : 0.7 // 70% opacity when inactive
+                  }}
+              >
                   PREVIEW
               </span>
           </button>
@@ -330,7 +358,7 @@ export function FluidTypeCalculator() {
              </span>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-5 space-y-8 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-5 space-y-5 custom-scrollbar">
           
           {/* SECTION: BASE SETTINGS (Top) */}
           <div className="space-y-4">
@@ -395,6 +423,144 @@ export function FluidTypeCalculator() {
                     </div>
                 </div>
              </div>
+          </div>
+
+          <div className="h-px bg-gray-100" />
+
+          {/* SECTION: HEADINGS */}
+          <div className="space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'oklch(0.708 0 0)' }}>Headings</h3>
+            
+            <div className="grid gap-3">
+                <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
+                    <Label className="text-sm text-gray-600 w-[100px] shrink-0">Font</Label>
+                    <div className="w-full min-w-0 flex-1">
+                         {/* Simplified Font Picker for Heading - Reuse component but handle "inherit" */}
+                         <div className="relative">
+                             <FontPicker 
+                                value={config.headingFontFamily === 'inherit' ? config.fontFamily : config.headingFontFamily} 
+                                onValueChange={(val) => handleInputChange("headingFontFamily", val)} 
+                            />
+                            {config.headingFontFamily === 'inherit' && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-white/50 pointer-events-none">
+                                    <span className="text-xs text-gray-600 italic">inherit</span>
+                                </div>
+                            )}
+                         </div>
+                    </div>
+                </div>
+
+                 <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
+                    <Label className="text-sm text-gray-600 w-[100px] shrink-0">Weight</Label>
+                    <div className="flex-1 min-w-0">
+                        <Select
+                            value={config.headingFontWeight.toString()}
+                            onValueChange={(val) => handleInputChange("headingFontWeight", Number(val))}
+                        >
+                            <SelectTrigger className="w-full bg-white border-gray-200 h-9 focus:ring-gray-400 min-w-0">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {WEIGHTS.map((w) => (
+                                    <SelectItem key={w.value} value={w.value.toString()}>{w.value}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+
+                 <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
+                    <Label className="text-sm text-gray-600 w-[100px] shrink-0">Line-height</Label>
+                    <div className="flex-1 min-w-0">
+                        <Input 
+                            type="number" 
+                            step="0.05"
+                            value={config.headingLineHeight}
+                            onChange={(e) => handleInputChange("headingLineHeight", Number(e.target.value))}
+                            className="bg-white border-gray-200 h-9 focus-visible:ring-gray-400 w-full"
+                        />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
+                    <Label className="text-sm text-gray-600 w-[100px] shrink-0 whitespace-nowrap">Letter-spacing</Label>
+                     <div className="relative flex-1 min-w-0">
+                        <Input 
+                            type="number" 
+                            step="0.01"
+                            value={config.headingLetterSpacing}
+                            onChange={(e) => handleInputChange("headingLetterSpacing", Number(e.target.value))}
+                            className="bg-white border-gray-200 pr-8 h-9 focus-visible:ring-gray-400 w-full"
+                        />
+                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-600 font-medium">em</span>
+                    </div>
+                </div>
+            </div>
+          </div>
+
+          <div className="h-px bg-gray-100" />
+
+          {/* SECTION: BODY */}
+          <div className="space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'oklch(0.708 0 0)' }}>Body</h3>
+            
+            <div className="grid gap-3">
+                <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
+                    <Label className="text-sm font-medium text-gray-700 w-[100px] shrink-0">Font</Label>
+                    <div className="w-full min-w-0 flex-1">
+                         <FontPicker 
+                            value={config.fontFamily} 
+                            onValueChange={(val) => handleInputChange("fontFamily", val)} 
+                        />
+                    </div>
+                </div>
+
+                 <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
+                    <Label className="text-sm font-medium text-gray-700 w-[100px] shrink-0">Weight</Label>
+                    <div className="flex-1 min-w-0">
+                        <Select
+                            value={config.fontWeight.toString()}
+                            onValueChange={(val) => handleInputChange("fontWeight", Number(val))}
+                        >
+                            <SelectTrigger className="w-full bg-white border-gray-200 h-9 focus:ring-gray-400 min-w-0">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {WEIGHTS.map((w) => (
+                                    <SelectItem key={w.value} value={w.value.toString()}>{w.value}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+
+                 <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
+                    <Label className="text-sm font-medium text-gray-700 w-[100px] shrink-0">Line-height</Label>
+                    <div className="flex-1 min-w-0">
+                        <Input 
+                            type="number" 
+                            step="0.05"
+                            value={config.lineHeight}
+                            onChange={(e) => handleInputChange("lineHeight", Number(e.target.value))}
+                            className="bg-white border-gray-200 h-9 focus-visible:ring-gray-400 w-full"
+                        />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
+                    <Label className="text-sm font-medium text-gray-700 w-[100px] shrink-0 whitespace-nowrap">Letter-spacing</Label>
+                    <div className="relative flex-1 min-w-0">
+                        <Input 
+                            type="number" 
+                            step="0.01"
+                            value={config.letterSpacing}
+                            onChange={(e) => handleInputChange("letterSpacing", Number(e.target.value))}
+                            className="bg-white border-gray-200 pr-8 h-9 focus-visible:ring-gray-400 w-full"
+                        />
+                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-600 font-medium">em</span>
+                    </div>
+                </div>
+            </div>
           </div>
 
           <div className="h-px bg-gray-100" />
@@ -474,198 +640,56 @@ export function FluidTypeCalculator() {
 
           <div className="h-px bg-gray-100" />
 
-          {/* SECTION: BODY */}
+          {/* SECTION: ROUND RULE */}
           <div className="space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'oklch(0.708 0 0)' }}>Body</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider mb-4" style={{ color: 'oklch(0.708 0 0)' }}>Round rule</h3>
             
-            <div className="grid gap-3">
-                <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
-                    <Label className="text-sm font-medium text-gray-700 w-[100px] shrink-0">Font</Label>
-                    <div className="w-full min-w-0 flex-1">
-                         <FontPicker 
-                            value={config.fontFamily} 
-                            onValueChange={(val) => handleInputChange("fontFamily", val)} 
-                        />
-                    </div>
+            <div className="space-y-3">
+                <div className="flex items-center justify-between gap-4">
+                    <Label 
+                        htmlFor="round-to-whole" 
+                        className="text-sm font-normal text-gray-700 cursor-pointer flex-1"
+                    >
+                        Round to whole number
+                    </Label>
+                    <Switch 
+                        id="round-to-whole"
+                        checked={roundToWholeNumber}
+                        onCheckedChange={(checked) => setRoundToWholeNumber(checked === true)}
+                    />
                 </div>
-
-                 <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
-                    <Label className="text-sm font-medium text-gray-700 w-[100px] shrink-0">Weight</Label>
-                    <div className="flex-1 min-w-0">
-                        <Select
-                            value={config.fontWeight.toString()}
-                            onValueChange={(val) => handleInputChange("fontWeight", Number(val))}
-                        >
-                            <SelectTrigger className="w-full bg-white border-gray-200 h-9 focus:ring-gray-400 min-w-0">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {WEIGHTS.map((w) => (
-                                    <SelectItem key={w.value} value={w.value.toString()}>{w.value}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-
-                 <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
-                    <Label className="text-sm font-medium text-gray-700 w-[100px] shrink-0">Line-height</Label>
-                    <div className="flex-1 min-w-0">
-                        <Input 
-                            type="number" 
-                            step="0.05"
-                            value={config.lineHeight}
-                            onChange={(e) => handleInputChange("lineHeight", Number(e.target.value))}
-                            className="bg-white border-gray-200 h-9 focus-visible:ring-gray-400 w-full"
-                        />
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
-                    <Label className="text-sm font-medium text-gray-700 w-[100px] shrink-0 whitespace-nowrap">Letter-spacing</Label>
-                    <div className="relative flex-1 min-w-0">
-                        <Input 
-                            type="number" 
-                            step="0.01"
-                            value={config.letterSpacing}
-                            onChange={(e) => handleInputChange("letterSpacing", Number(e.target.value))}
-                            className="bg-white border-gray-200 pr-8 h-9 focus-visible:ring-gray-400 w-full"
-                        />
-                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-600 font-medium">em</span>
-                    </div>
-                </div>
-
-                 <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
-                    <Label className="text-sm font-medium text-gray-700 w-[100px] shrink-0">Color</Label>
-                    <div className="flex gap-2 h-9 flex-1 min-w-0">
-                        <div className="w-full relative bg-white border border-gray-200 rounded-md overflow-hidden flex items-center px-2 min-w-0 shadow-xs">
-                             <span className="text-xs font-mono truncate flex-1 text-gray-600 min-w-0">{config.color}</span>
-                             <div className="w-5 h-5 border rounded-full overflow-hidden shrink-0 ml-2 relative shadow-inner">
-                                <input 
-                                    type="color" 
-                                    value={config.color}
-                                    onChange={(e) => handleInputChange("color", e.target.value)}
-                                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                                />
-                                <div className="w-full h-full" style={{ backgroundColor: config.color }} />
-                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                 <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
-                    <Label className="text-sm font-medium text-gray-700 w-[100px] shrink-0">Background</Label>
-                     <div className="flex gap-2 h-9 flex-1 min-w-0">
-                        <div className="w-full relative bg-white border border-gray-200 rounded-md overflow-hidden flex items-center px-2 min-w-0 shadow-xs">
-                             <span className="text-xs font-mono truncate flex-1 text-gray-600 min-w-0">{config.backgroundColor}</span>
-                             <div className="w-5 h-5 border rounded-full overflow-hidden shrink-0 ml-2 relative shadow-inner">
-                                <input 
-                                    type="color" 
-                                    value={config.backgroundColor}
-                                    onChange={(e) => handleInputChange("backgroundColor", e.target.value)}
-                                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                                />
-                                <div className="w-full h-full" style={{ backgroundColor: config.backgroundColor }} />
-                             </div>
-                        </div>
-                    </div>
+                <div className="flex items-center justify-between gap-4">
+                    <Label 
+                        htmlFor="round-line-height" 
+                        className="text-sm font-normal text-gray-700 cursor-pointer flex-1"
+                    >
+                        Round line-height to the nearest multiple of 4
+                    </Label>
+                    <Switch 
+                        id="round-line-height"
+                        checked={roundLineHeightToMultipleOf4}
+                        onCheckedChange={(checked) => setRoundLineHeightToMultipleOf4(checked === true)}
+                    />
                 </div>
             </div>
           </div>
 
-           <div className="h-px bg-gray-100" />
+        </div>
 
-          {/* SECTION: HEADINGS */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'oklch(0.708 0 0)' }}>Headings</h3>
-            
-            <div className="grid gap-3">
-                <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
-                    <Label className="text-sm text-gray-600 w-[100px] shrink-0">Font</Label>
-                    <div className="w-full min-w-0 flex-1">
-                         {/* Simplified Font Picker for Heading - Reuse component but handle "inherit" */}
-                         <div className="relative">
-                             <FontPicker 
-                                value={config.headingFontFamily === 'inherit' ? config.fontFamily : config.headingFontFamily} 
-                                onValueChange={(val) => handleInputChange("headingFontFamily", val)} 
-                            />
-                            {config.headingFontFamily === 'inherit' && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-white/50 pointer-events-none">
-                                    <span className="text-xs text-gray-600 italic">inherit</span>
-                                </div>
-                            )}
-                         </div>
-                    </div>
-                </div>
-
-                 <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
-                    <Label className="text-sm text-gray-600 w-[100px] shrink-0">Weight</Label>
-                    <div className="flex-1 min-w-0">
-                        <Select
-                            value={config.headingFontWeight.toString()}
-                            onValueChange={(val) => handleInputChange("headingFontWeight", Number(val))}
-                        >
-                            <SelectTrigger className="w-full bg-white border-gray-200 h-9 focus:ring-gray-400 min-w-0">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {WEIGHTS.map((w) => (
-                                    <SelectItem key={w.value} value={w.value.toString()}>{w.value}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-
-                 <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
-                    <Label className="text-sm text-gray-600 w-[100px] shrink-0">Line-height</Label>
-                    <div className="flex-1 min-w-0">
-                        <Input 
-                            type="number" 
-                            step="0.05"
-                            value={config.headingLineHeight}
-                            onChange={(e) => handleInputChange("headingLineHeight", Number(e.target.value))}
-                            className="bg-white border-gray-200 h-9 focus-visible:ring-gray-400 w-full"
-                        />
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
-                    <Label className="text-sm text-gray-600 w-[100px] shrink-0 whitespace-nowrap">Letter-spacing</Label>
-                     <div className="relative flex-1 min-w-0">
-                        <Input 
-                            type="number" 
-                            step="0.01"
-                            value={config.headingLetterSpacing}
-                            onChange={(e) => handleInputChange("headingLetterSpacing", Number(e.target.value))}
-                            className="bg-white border-gray-200 pr-8 h-9 focus-visible:ring-gray-400 w-full"
-                        />
-                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-600 font-medium">em</span>
-                    </div>
-                </div>
-
-                 <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
-                    <Label className="text-sm text-gray-600 w-[100px] shrink-0">Color</Label>
-                    <div className="flex gap-2 h-9 flex-1 min-w-0">
-                        <div className="w-full relative bg-white border border-gray-200 rounded-md overflow-hidden flex items-center px-2 min-w-0 shadow-xs">
-                             <span className="text-xs font-mono truncate flex-1 text-gray-600 min-w-0">
-                                 {config.headingColor === 'inherit' ? 'inherit' : config.headingColor}
-                             </span>
-                             <div className="w-5 h-5 border rounded-full overflow-hidden shrink-0 ml-2 relative shadow-inner">
-                                <input 
-                                    type="color" 
-                                    value={config.headingColor === 'inherit' ? '#000000' : config.headingColor}
-                                    onChange={(e) => handleInputChange("headingColor", e.target.value)}
-                                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                                />
-                                <div className="w-full h-full" style={{ backgroundColor: config.headingColor === 'inherit' ? 'transparent' : config.headingColor }} />
-                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-          </div>
-
+        {/* Footer with Restore Default Button */}
+        <div className="border-t border-black/5 p-5 shrink-0">
+          <Button
+            onClick={() => {
+              setConfig({ ...defaultConfig });
+              setRoundToWholeNumber(true);
+              setRoundLineHeightToMultipleOf4(true);
+            }}
+            variant="outline"
+            className="w-full"
+            disabled={isConfigDefault}
+          >
+            Restore default
+          </Button>
         </div>
       </aside>
 
@@ -684,10 +708,13 @@ export function FluidTypeCalculator() {
                 >
                      <div 
                         className={cn(
-                            "max-w-[1200px] mx-auto transition-all duration-300 ease-out",
-                            "p-5"
+                            "max-w-[1200px] mx-auto transition-all duration-300 ease-out"
                         )}
                         style={{
+                            paddingTop: '40px',
+                            paddingBottom: '40px',
+                            paddingLeft: '80px',
+                            paddingRight: '80px',
                             fontFamily: `"${config.fontFamily}", sans-serif`,
                             fontWeight: config.fontWeight,
                             lineHeight: config.lineHeight,
@@ -716,7 +743,13 @@ export function FluidTypeCalculator() {
                                          </TabsList>
                                      </Tabs>
                                  </div>
-                                 <HeadingPreview steps={steps} config={config} viewMode={viewMode} />
+                                 <HeadingPreview 
+                                     steps={steps} 
+                                     config={config} 
+                                     viewMode={viewMode}
+                                     roundToWholeNumber={roundToWholeNumber}
+                                     roundLineHeightToMultipleOf4={roundLineHeightToMultipleOf4}
+                                 />
                              </>
                          ) : (
                              <Tabs defaultValue="examples" className="w-full h-full" onValueChange={(value) => {
@@ -788,7 +821,7 @@ export function FluidTypeCalculator() {
         <footer className="sticky bottom-0 px-6 shrink-0 border-t border-gray-100 z-20" style={{ paddingTop: '12px' }}>
           <div className="max-w-[1200px] mx-auto">
             <div className="flex flex-wrap items-center justify-center gap-4 text-xs">
-              <span style={{ color: 'oklch(55.6% 0 0)' }}>Reference links:</span>
+              <span style={{ color: 'oklch(55.6% 0 0)' }}>Reference:</span>
               <a
                 href="https://spencermortensen.com/articles/typographic-scale/"
                 target="_blank"
@@ -825,6 +858,15 @@ export function FluidTypeCalculator() {
               >
                 Layout Grid Calculator - Type Scale
               </a>
+              <a
+                href="https://www.a11yproject.com/posts/how-to-accessible-heading-structure/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:opacity-80"
+                style={{ color: 'oklch(55.6% 0 0)' }}
+              >
+                How to Create Accessible Heading Structure
+              </a>
               <span style={{ color: 'oklch(55.6% 0 0)' }}>|</span>
               <a
                 href="https://github.com/edisonliwh/type-scale-calculator"
@@ -860,7 +902,19 @@ export function FluidTypeCalculator() {
 }
 
 // ... HeadingPreview and LandingPreview remain unchanged ...
-function HeadingPreview({ steps, config, viewMode = 'desktop' }: { steps: any[], config: FluidTypeConfig, viewMode?: 'desktop' | 'mobile' }) {
+function HeadingPreview({ 
+    steps, 
+    config, 
+    viewMode = 'desktop',
+    roundToWholeNumber = false,
+    roundLineHeightToMultipleOf4 = false
+}: { 
+    steps: any[], 
+    config: FluidTypeConfig, 
+    viewMode?: 'desktop' | 'mobile',
+    roundToWholeNumber?: boolean,
+    roundLineHeightToMultipleOf4?: boolean
+}) {
     const isShadcn = config.maxRatio === "shadcn" || config.minRatio === "shadcn";
     
     // Helper function to determine category for a step
@@ -952,7 +1006,7 @@ function HeadingPreview({ steps, config, viewMode = 'desktop' }: { steps: any[],
     };
 
     return (
-        <div className={`space-y-12 ${viewMode === 'mobile' ? 'max-w-[375px] mx-auto' : ''}`}>
+        <div className={`space-y-12 ${viewMode === 'mobile' ? 'max-w-[375px]' : ''}`}>
             {sortedGroupedSteps.map(([category, categorySteps]) => (
                 <div key={category} className="space-y-8">
                     {categoryLabels[category] && (
@@ -969,18 +1023,75 @@ function HeadingPreview({ steps, config, viewMode = 'desktop' }: { steps: any[],
                             <div key={step.name}>
                                 <div className="group relative">
                                     <div className="flex flex-col gap-2">
-                                         <div className="flex items-baseline gap-3 text-xs font-mono select-none text-gray-600">
+                                         <div className="flex items-center gap-3 text-xs font-mono select-none text-gray-600">
                                              <span className="uppercase tracking-wider font-bold transition-colors group-hover:text-[oklch(70.5%_0.213_47.604)]">{step.name}</span>
                                              <span>•</span>
-                                             <span>{isShadcn
-                                                    ? `${(step.fontSize / config.remValue).toFixed(2)}rem / ${step.fontSize.toFixed(2)}px`
+                                             <span className="flex items-center gap-1.5">
+                                                {isShadcn
+                                                    ? (() => {
+                                                        const fontSizePx = step.fontSize;
+                                                        const fontSizeRem = (step.fontSize / config.remValue).toFixed(2);
+                                                        const lineHeightValue = step.lineHeight || config.lineHeight;
+                                                        const lineHeightPx = step.fontSize * lineHeightValue;
+                                                        const fontSizePxDisplay = roundToWholeNumber ? Math.round(fontSizePx).toString() : Number(fontSizePx.toFixed(2));
+                                                        let lineHeightPxDisplay;
+                                                        if (roundLineHeightToMultipleOf4) {
+                                                            lineHeightPxDisplay = Math.round(lineHeightPx / 4) * 4;
+                                                        } else if (roundToWholeNumber) {
+                                                            lineHeightPxDisplay = Math.round(lineHeightPx).toString();
+                                                        } else {
+                                                            lineHeightPxDisplay = Number(lineHeightPx.toFixed(2));
+                                                        }
+                                                        return (
+                                                            <>
+                                                                <svg width="16" height="16" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0" style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+                                                                    <path fillRule="evenodd" clipRule="evenodd" d="M17.7476 11.2629C18.3663 9.91744 20.3476 9.96407 20.8755 11.3979L23.9421 19.7089C24.1213 20.1975 23.8709 20.7401 23.3823 20.9218C22.8937 21.101 22.3511 20.8506 22.1719 20.362L21.4697 18.4593H17.0994L16.3997 20.362C16.218 20.8506 15.6755 21.101 15.1868 20.9218C14.6983 20.7401 14.4478 20.1975 14.6295 19.7089L17.6936 11.3979L17.7476 11.2629ZM17.7942 16.5734H20.7749L19.2846 12.5273L17.7942 16.5734Z" fill="currentColor"/>
+                                                                    <path d="M7.15816 5.45841C7.85299 3.51386 10.6028 3.51386 11.3 5.45841L13.8878 12.689C14.0621 13.18 13.8068 13.7202 13.3182 13.8945C12.8272 14.0688 12.287 13.8135 12.1127 13.3249L9.52491 6.09432C9.42425 5.81443 9.03142 5.81443 8.93321 6.09432L5.62853 15.3261H11.742C12.2625 15.3261 12.6848 15.7484 12.6848 16.2689C12.6848 16.7894 12.2625 17.2117 11.742 17.2117H4.95324L3.83119 20.3519C3.65442 20.8405 3.11429 21.0958 2.62322 20.9215C2.13464 20.7447 1.87929 20.2046 2.05607 19.716L7.15816 5.45841Z" fill="currentColor"/>
+                                                                </svg>
+                                                                <span>{fontSizePxDisplay}px/{fontSizeRem}rem;</span>
+                                                                <svg width="16" height="16" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0" style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+                                                                    <path d="M21.8974 22.3077C22.3646 22.3077 22.7436 22.6867 22.7436 23.1538C22.7436 23.621 22.3646 24 21.8974 24H3.84615C3.37901 24 3 23.621 3 23.1538C3 22.6867 3.37901 22.3077 3.84615 22.3077H21.8974Z" fill="currentColor"/>
+                                                                    <path fillRule="evenodd" clipRule="evenodd" d="M11.0255 7.64104C11.6667 5.93553 14.0796 5.93553 14.7208 7.64104L18.74 18.3438C18.9053 18.7823 18.6849 19.2692 18.2464 19.4323C17.8079 19.5976 17.321 19.3772 17.1579 18.9387L16.0914 16.1028H9.65272L8.58623 18.9387C8.42317 19.3772 7.93621 19.5976 7.49768 19.4323C7.05918 19.2692 6.83881 18.7823 7.00409 18.3438L11.0255 7.64104ZM13.1364 8.2382C13.0439 7.99361 12.7001 7.99361 12.6076 8.2382L10.2873 14.41H15.4568L13.1364 8.2382Z" fill="currentColor"/>
+                                                                    <path d="M21.8974 2C22.3646 2 22.7436 2.37901 22.7436 2.84615C22.7436 3.3133 22.3646 3.69231 21.8974 3.69231H3.84615C3.37901 3.69231 3 3.3133 3 2.84615C3 2.37901 3.37901 2 3.84615 2H21.8974Z" fill="currentColor"/>
+                                                                </svg>
+                                                                <span>{lineHeightValue.toFixed(1)}/{lineHeightPxDisplay}px</span>
+                                                            </>
+                                                        );
+                                                    })()
                                                     : (() => {
                                                         const size = viewMode === 'desktop' ? step.maxSize : step.minSize;
-                                                        return config.useRems 
-                                                            ? `${(size / config.remValue).toFixed(2)}rem / ${size.toFixed(2)}px`
-                                                            : `${size.toFixed(0)}px`;
+                                                        const fontSizePx = size;
+                                                        const fontSizeRem = (size / config.remValue).toFixed(2);
+                                                        const isHeading = step.name.startsWith('heading-');
+                                                        const lineHeightValue = isHeading ? config.headingLineHeight : config.lineHeight;
+                                                        const lineHeightPx = size * lineHeightValue;
+                                                        const fontSizePxDisplay = roundToWholeNumber ? Math.round(fontSizePx).toString() : Number(fontSizePx.toFixed(2));
+                                                        let lineHeightPxDisplay;
+                                                        if (roundLineHeightToMultipleOf4) {
+                                                            lineHeightPxDisplay = Math.round(lineHeightPx / 4) * 4;
+                                                        } else if (roundToWholeNumber) {
+                                                            lineHeightPxDisplay = Math.round(lineHeightPx).toString();
+                                                        } else {
+                                                            lineHeightPxDisplay = Number(lineHeightPx.toFixed(2));
+                                                        }
+                                                        return (
+                                                            <>
+                                                                <svg width="16" height="16" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0" style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+                                                                    <path fillRule="evenodd" clipRule="evenodd" d="M17.7476 11.2629C18.3663 9.91744 20.3476 9.96407 20.8755 11.3979L23.9421 19.7089C24.1213 20.1975 23.8709 20.7401 23.3823 20.9218C22.8937 21.101 22.3511 20.8506 22.1719 20.362L21.4697 18.4593H17.0994L16.3997 20.362C16.218 20.8506 15.6755 21.101 15.1868 20.9218C14.6983 20.7401 14.4478 20.1975 14.6295 19.7089L17.6936 11.3979L17.7476 11.2629ZM17.7942 16.5734H20.7749L19.2846 12.5273L17.7942 16.5734Z" fill="currentColor"/>
+                                                                    <path d="M7.15816 5.45841C7.85299 3.51386 10.6028 3.51386 11.3 5.45841L13.8878 12.689C14.0621 13.18 13.8068 13.7202 13.3182 13.8945C12.8272 14.0688 12.287 13.8135 12.1127 13.3249L9.52491 6.09432C9.42425 5.81443 9.03142 5.81443 8.93321 6.09432L5.62853 15.3261H11.742C12.2625 15.3261 12.6848 15.7484 12.6848 16.2689C12.6848 16.7894 12.2625 17.2117 11.742 17.2117H4.95324L3.83119 20.3519C3.65442 20.8405 3.11429 21.0958 2.62322 20.9215C2.13464 20.7447 1.87929 20.2046 2.05607 19.716L7.15816 5.45841Z" fill="currentColor"/>
+                                                                </svg>
+                                                                <span>{fontSizePxDisplay}px/{fontSizeRem}rem;</span>
+                                                                <svg width="16" height="16" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0" style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+                                                                    <path d="M21.8974 22.3077C22.3646 22.3077 22.7436 22.6867 22.7436 23.1538C22.7436 23.621 22.3646 24 21.8974 24H3.84615C3.37901 24 3 23.621 3 23.1538C3 22.6867 3.37901 22.3077 3.84615 22.3077H21.8974Z" fill="currentColor"/>
+                                                                    <path fillRule="evenodd" clipRule="evenodd" d="M11.0255 7.64104C11.6667 5.93553 14.0796 5.93553 14.7208 7.64104L18.74 18.3438C18.9053 18.7823 18.6849 19.2692 18.2464 19.4323C17.8079 19.5976 17.321 19.3772 17.1579 18.9387L16.0914 16.1028H9.65272L8.58623 18.9387C8.42317 19.3772 7.93621 19.5976 7.49768 19.4323C7.05918 19.2692 6.83881 18.7823 7.00409 18.3438L11.0255 7.64104ZM13.1364 8.2382C13.0439 7.99361 12.7001 7.99361 12.6076 8.2382L10.2873 14.41H15.4568L13.1364 8.2382Z" fill="currentColor"/>
+                                                                    <path d="M21.8974 2C22.3646 2 22.7436 2.37901 22.7436 2.84615C22.7436 3.3133 22.3646 3.69231 21.8974 3.69231H3.84615C3.37901 3.69231 3 3.3133 3 2.84615C3 2.37901 3.37901 2 3.84615 2H21.8974Z" fill="currentColor"/>
+                                                                </svg>
+                                                                <span>{lineHeightValue.toFixed(1)}/{lineHeightPxDisplay}px</span>
+                                                            </>
+                                                        );
                                                     })()
-                                             }</span>
+                                                }
+                                             </span>
                                          </div>
                                          
                                         {styleDescriptions[step.name] && (
@@ -1001,7 +1112,23 @@ function HeadingPreview({ steps, config, viewMode = 'desktop' }: { steps: any[],
                                             suppressContentEditableWarning
                                             className="outline-none empty:before:content-['Type_something...'] empty:before:text-gray-600"
                                             style={{ 
-                                                fontSize: step.clamp,
+                                                fontSize: (() => {
+                                                    // For mobile view, always use minSize calculated from responsive settings
+                                                    if (viewMode === 'mobile') {
+                                                        // For Shadcn, minSize equals fontSize (fixed), but we still use it
+                                                        if (step.minSize !== undefined) {
+                                                            return config.useRems 
+                                                                ? `${(step.minSize / config.remValue).toFixed(config.decimals)}rem`
+                                                                : `${step.minSize.toFixed(config.decimals)}px`;
+                                                        }
+                                                        // Fallback for Shadcn if minSize not set
+                                                        if (isShadcn && step.fontSize) {
+                                                            return `${step.fontSize}px`;
+                                                        }
+                                                    }
+                                                    // For desktop view, use clamp for fluid scaling
+                                                    return step.clamp;
+                                                })(),
                                                 maxWidth: '25ch',
                                                 marginTop: '12px',
                                                 ...getHeadingStyle(step)
@@ -1109,11 +1236,11 @@ function ArticlePreview({ steps, config, styleMappings = {} }: { steps: any[], c
                         </TextWithTooltip>
                     </div>
 
-                    <TextWithTooltip stepName={getStepName("article-heading-2", "heading-2")} as="h2" style={getStyle(getStepName("article-heading-2", "heading-2"))} className="mb-6">
+                    <TextWithTooltip stepName={getStepName("article-heading-2", "heading-3")} as="h2" style={getStyle(getStepName("article-heading-2", "heading-3"))} className="mb-6">
                         A world where letters breathe like music
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-6")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-6"))} className="mb-4">
                         The page as a musical staff
                     </TextWithTooltip>
 
@@ -1121,7 +1248,7 @@ function ArticlePreview({ steps, config, styleMappings = {} }: { steps: any[], c
                         In a quiet atelier where letters live like notes on a staff, the realm of typography hums with invisible music. Every lowercase "a," every bold headline and tiny footnote is a single tone, waiting to be woven into a chord. In this world, the text on the page is the melody, and the layout is its harmony.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-6")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-6"))} className="mb-4">
                         Margins as rests and breath
                     </TextWithTooltip>
 
@@ -1129,7 +1256,7 @@ function ArticlePreview({ steps, config, styleMappings = {} }: { steps: any[], c
                         Margins are not emptiness. They are the pauses between phrases. Just as a musician must breathe between measures, a reader needs silence between blocks of meaning. Left margins steady the rhythm. Bottom margins let the final note linger.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-6")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-6"))} className="mb-4">
                         Line length as melodic phrasing
                     </TextWithTooltip>
 
@@ -1137,11 +1264,11 @@ function ArticlePreview({ steps, config, styleMappings = {} }: { steps: any[], c
                         A short line cuts like staccato. A long line stretches like legato. The measure of a paragraph determines whether the eye dances quickly or glides slowly. Good line length does not shout. It sings.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName={getStepName("article-heading-2", "heading-2")} as="h2" style={getStyle(getStepName("article-heading-2", "heading-2"))} className="mb-6">
+                    <TextWithTooltip stepName={getStepName("article-heading-2", "heading-3")} as="h2" style={getStyle(getStepName("article-heading-2", "heading-3"))} className="mb-6">
                         Harmony through proportion
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-6")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-6"))} className="mb-4">
                         Ratios as musical intervals
                     </TextWithTooltip>
 
@@ -1149,7 +1276,7 @@ function ArticlePreview({ steps, config, styleMappings = {} }: { steps: any[], c
                         In this atelier, designers do not choose font size or margin at random. They reach into the lineage of music: ratios like 2:3, 3:4, 3:5, 1:2. They treat these not as abstract numbers, but as living intervals.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-6")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-6"))} className="mb-4">
                         Type scale as chord progression
                     </TextWithTooltip>
 
@@ -1157,7 +1284,7 @@ function ArticlePreview({ steps, config, styleMappings = {} }: { steps: any[], c
                         When body text breathes at a 2:3 rhythm, it becomes a perfect fifth. A heading that doubles in size becomes an octave. A caption at three-quarters of the base size becomes a perfect fourth. The typographic scale stops being mechanical and starts behaving like harmony in motion.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-6")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-6"))} className="mb-4">
                         Vertical rhythm as time signature
                     </TextWithTooltip>
 
@@ -1174,11 +1301,11 @@ function ArticlePreview({ steps, config, styleMappings = {} }: { steps: any[], c
                         </TextWithTooltip>
                     </blockquote>
 
-                    <TextWithTooltip stepName={getStepName("article-heading-2", "heading-2")} as="h2" style={getStyle(getStepName("article-heading-2", "heading-2"))} className="mb-6">
+                    <TextWithTooltip stepName={getStepName("article-heading-2", "heading-3")} as="h2" style={getStyle(getStepName("article-heading-2", "heading-3"))} className="mb-6">
                         Devices as instruments
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-6")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-6"))} className="mb-4">
                         Screen size as resonance chamber
                     </TextWithTooltip>
 
@@ -1186,7 +1313,7 @@ function ArticlePreview({ steps, config, styleMappings = {} }: { steps: any[], c
                         A narrow phone compresses the sound. A wide desktop lets it expand. The same composition vibrates differently inside different physical containers, just like the same melody played in a small room versus a cathedral.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-6")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-6"))} className="mb-4">
                         Orientation as key change
                     </TextWithTooltip>
 
@@ -1194,7 +1321,7 @@ function ArticlePreview({ steps, config, styleMappings = {} }: { steps: any[], c
                         Portrait and landscape are not just rotations. They are modulations. The same content shifts emotional weight when the axis changes. What felt intimate becomes expansive. What felt commanding becomes personal.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-6")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-6"))} className="mb-4">
                         Responsive design as changing tempo
                     </TextWithTooltip>
 
@@ -1211,11 +1338,11 @@ function ArticlePreview({ steps, config, styleMappings = {} }: { steps: any[], c
                         </TextWithTooltip>
                     </blockquote>
 
-                    <TextWithTooltip stepName={getStepName("article-heading-2", "heading-2")} as="h2" style={getStyle(getStepName("article-heading-2", "heading-2"))} className="mb-6">
+                    <TextWithTooltip stepName={getStepName("article-heading-2", "heading-3")} as="h2" style={getStyle(getStepName("article-heading-2", "heading-3"))} className="mb-6">
                         Dissonance and emotional gravity
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-6")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-6"))} className="mb-4">
                         When layout becomes noise
                     </TextWithTooltip>
 
@@ -1223,7 +1350,7 @@ function ArticlePreview({ steps, config, styleMappings = {} }: { steps: any[], c
                         A cramped line height becomes a rushed tempo. A headline pressed too close to body text becomes a collision of sounds. The layout still functions, but it no longer flows. The page begins to shout instead of speak.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-6")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-6"))} className="mb-4">
                         Visual clutter as harmonic distortion
                     </TextWithTooltip>
 
@@ -1231,7 +1358,7 @@ function ArticlePreview({ steps, config, styleMappings = {} }: { steps: any[], c
                         Too many weights, too many sizes, too many colors collapse into visual distortion. The eye cannot separate voices. The melody disappears into static.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-6")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-6"))} className="mb-4">
                         Tuned silence as emotional control
                     </TextWithTooltip>
 
@@ -1239,11 +1366,11 @@ function ArticlePreview({ steps, config, styleMappings = {} }: { steps: any[], c
                         White space calibrated with care becomes emotional gravity. It slows the reader without force. It gives seriousness weight and gives lightness air. Silence, once tuned, becomes expressive.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName={getStepName("article-heading-2", "heading-2")} as="h2" style={getStyle(getStepName("article-heading-2", "heading-2"))} className="mb-6">
+                    <TextWithTooltip stepName={getStepName("article-heading-2", "heading-3")} as="h2" style={getStyle(getStepName("article-heading-2", "heading-3"))} className="mb-6">
                         The reader as the final listener
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-6")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-6"))} className="mb-4">
                         Perception without awareness
                     </TextWithTooltip>
 
@@ -1251,7 +1378,7 @@ function ArticlePreview({ steps, config, styleMappings = {} }: { steps: any[], c
                         The reader never measures ratios. The reader never names intervals. They only feel balance. They scroll. They pause. They breathe between sections without realizing the layout is guiding them.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-6")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-6"))} className="mb-4">
                         Reading as a temporal act
                     </TextWithTooltip>
 
@@ -1259,7 +1386,7 @@ function ArticlePreview({ steps, config, styleMappings = {} }: { steps: any[], c
                         Typography unfolds in time, not space. Meaning is not consumed all at once. It is played. The reader passes through introduction, tension, resolution, and release just like a listener moves through movements in a piece of music.
                     </TextWithTooltip>
 
-                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-5")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-5"))} className="mb-4">
+                    <TextWithTooltip stepName={getStepName("article-heading-3", "heading-6")} as="h5" style={getStyle(getStepName("article-heading-3", "heading-6"))} className="mb-4">
                         Memory as the echo of design
                     </TextWithTooltip>
 
