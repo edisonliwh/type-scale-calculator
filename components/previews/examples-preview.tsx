@@ -82,11 +82,6 @@ export function ExamplesPreview({ steps, config, styleMappings = {} }: ExamplesP
       fontSize: step?.clamp,
       ...headingStyle,
     };
-
-    return {
-      fontSize,
-      ...headingStyle,
-    };
   };
 
   const getMappedStepName = (stepName: string) => {
