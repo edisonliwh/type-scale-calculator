@@ -143,6 +143,7 @@ export function FluidTypeCalculator() {
   const [showStyleMappingPanel, setShowStyleMappingPanel] = useState(false);
   const [roundToWholeNumber, setRoundToWholeNumber] = useState(true);
   const [roundLineHeightToMultipleOf4, setRoundLineHeightToMultipleOf4] = useState(true);
+  const [countdown, setCountdown] = useState<number | null>(null);
   const mainContentRef = React.useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -162,6 +163,25 @@ export function FluidTypeCalculator() {
     return () => {
       document.body.classList.remove('dots-pattern');
     };
+  }, [crabEnabled]);
+
+  // Show countdown when toggle is turned on
+  useEffect(() => {
+    if (crabEnabled) {
+      setCountdown(3);
+      const interval = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev === null || prev <= 1) {
+            clearInterval(interval);
+            return null;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    } else {
+      setCountdown(null);
+    }
   }, [crabEnabled]);
 
 
@@ -717,6 +737,14 @@ export function FluidTypeCalculator() {
 
       {/* RIGHT MAIN: PREVIEW */}
       <main ref={mainContentRef} className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
+        {/* Countdown Timer - Show when toggle is on */}
+        {countdown !== null && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none">
+            <div className="text-9xl font-bold text-gray-900/20 select-none font-title">
+              {countdown}
+            </div>
+          </div>
+        )}
         {/* Snake Background - Only in main content area */}
         <SnakeBackground containerRef={mainContentRef} enabled={crabEnabled} onToggle={setCrabEnabled} hideToggle={showStyleMappingPanel} />
          {/* Content Area */}
