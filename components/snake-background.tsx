@@ -22,6 +22,8 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle, hideTo
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [score, setScore] = useState(0);
   const [homeCount, setHomeCount] = useState(0);
+  const [gameEnded, setGameEnded] = useState(false);
+  const [gameMessage, setGameMessage] = useState<string | null>(null);
   const [tooltips, setTooltips] = useState<Array<{ id: number; x: number; y: number; text?: string }>>([]);
   const foodRef = useRef<Position & { emoji: string } | null>(null);
   const homeRef = useRef<Position | null>(null);
@@ -31,11 +33,23 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle, hideTo
   const rowsRef = useRef(0);
   const tooltipIdRef = useRef(0);
   const gameStartTimeRef = useRef<number | null>(null);
-  const gamePausedRef = useRef(false); // Track if game is paused due to reaching 100
+  const gamePausedRef = useRef(false); // Track if game is paused due to reaching 7
+  const gameEndedRef = useRef(false); // Track game ended state in ref for immediate access
+  const scoreRef = useRef(0); // Track score in ref
+  const homeCountRef = useRef(0); // Track homeCount in ref
 
   useEffect(() => {
     if (!enabled) {
       gameStartTimeRef.current = null;
+      // Reset game state when disabled
+      setScore(0);
+      setHomeCount(0);
+      setGameEnded(false);
+      setGameMessage(null);
+      gamePausedRef.current = false;
+      gameEndedRef.current = false;
+      scoreRef.current = 0;
+      homeCountRef.current = 0;
       return;
     }
     
@@ -43,6 +57,13 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle, hideTo
     if (gameStartTimeRef.current === null) {
       gameStartTimeRef.current = Date.now();
       gamePausedRef.current = false; // Reset pause state when game starts
+      setGameEnded(false);
+      setGameMessage(null);
+      setScore(0);
+      setHomeCount(0);
+      gameEndedRef.current = false;
+      scoreRef.current = 0;
+      homeCountRef.current = 0;
     }
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -81,6 +102,7 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle, hideTo
   }, [containerRef, enabled]);
 
   useEffect(() => {
+    if (!enabled) return; // Don't run game loop when disabled
     const canvas = canvasRef.current;
     if (!canvas || dimensions.width === 0 || dimensions.height === 0) return;
 
@@ -272,11 +294,21 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle, hideTo
             if (newHead.x === foodForCollision.x && newHead.y === foodForCollision.y) {
               // Eating food - just grow (don't add food emoji, just don't remove tail)
               currentScore++;
+              scoreRef.current = currentScore;
               setScore(currentScore);
               
-              // Check if score reached 100 and pause game
-              if (currentScore >= 100) {
+              // Check if total count reached 7 and end game
+              const newTotal = currentScore + homeCountRef.current;
+              if (newTotal >= 7 && !gameEndedRef.current) {
                 gamePausedRef.current = true;
+                gameEndedRef.current = true;
+                setGameEnded(true);
+                // Determine winner message
+                if (currentScore > homeCountRef.current) {
+                  setGameMessage("Thanks for feeding my crab");
+                } else {
+                  setGameMessage("Thanks for saving food");
+                }
               }
               
               // Show tooltip above the crab
@@ -398,7 +430,7 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle, hideTo
         clearTimeout(timeoutId);
       }
     };
-  }, [dimensions]);
+  }, [dimensions, enabled]);
 
   // Keyboard controls for food movement
   useEffect(() => {
@@ -450,9 +482,19 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle, hideTo
           // Food reached home - increment count and generate new food
           setHomeCount(prev => {
             const newCount = prev + 1;
-            // Check if homeCount reached 100 and pause game
-            if (newCount >= 100) {
+            homeCountRef.current = newCount;
+            // Check if total count reached 7 and end game
+            const newTotal = scoreRef.current + newCount;
+            if (newTotal >= 7 && !gameEndedRef.current) {
               gamePausedRef.current = true;
+              gameEndedRef.current = true;
+              setGameEnded(true);
+              // Determine winner message
+              if (scoreRef.current > newCount) {
+                setGameMessage("Thanks for feeding my crab");
+              } else {
+                setGameMessage("Thanks for saving food");
+              }
             }
             return newCount;
           });
@@ -575,6 +617,15 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle, hideTo
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Game End Message */}
+          {gameEnded && gameMessage && (
+            <div className="absolute inset-0 z-[100] flex items-center justify-center pointer-events-none">
+              <div className="text-6xl font-bold text-gray-900/20 select-none" style={{ fontFamily: '"Departure Mono", monospace' }}>
+                {gameMessage}
+              </div>
             </div>
           )}
         </>
