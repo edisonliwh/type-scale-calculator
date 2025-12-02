@@ -17,6 +17,7 @@ import {
   Minimize,
   Eye,
   ChevronDown,
+  ChevronUp,
   Github
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -241,7 +242,10 @@ export function FluidTypeCalculator() {
 
   // Check if config matches default
   const isConfigDefault = useMemo(() => {
-    const configMatches = JSON.stringify(config) === JSON.stringify(defaultConfig);
+    // Compare config excluding previewMode since switching views shouldn't enable the button
+    const { previewMode: _, ...configWithoutPreviewMode } = config;
+    const { previewMode: __, ...defaultConfigWithoutPreviewMode } = defaultConfig;
+    const configMatches = JSON.stringify(configWithoutPreviewMode) === JSON.stringify(defaultConfigWithoutPreviewMode);
     const togglesMatch = roundToWholeNumber === true && roundLineHeightToMultipleOf4 === true;
     return configMatches && togglesMatch;
   }, [config, roundToWholeNumber, roundLineHeightToMultipleOf4]);
@@ -572,14 +576,32 @@ export function FluidTypeCalculator() {
             <div className="grid gap-3">
                  <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
                     <Label className="text-sm text-gray-600 w-[100px] shrink-0">Min-width</Label>
-                    <div className="relative flex-1 min-w-0">
+                    <div className="relative flex-1 min-w-0 flex items-center gap-1">
                         <Input 
                             type="number" 
                             value={config.minWidth}
                             onChange={(e) => handleInputChange("minWidth", Number(e.target.value))}
-                            className="bg-white border-gray-200 pr-8 h-9 focus-visible:ring-gray-400 w-full"
+                            className="bg-white border-gray-200 pr-8 h-9 focus-visible:ring-gray-400 w-full [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
                         />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-600 font-medium">px</span>
+                        <span className="absolute right-12 top-1/2 -translate-y-1/2 text-xs text-gray-600 font-medium">px</span>
+                        <div className="flex flex-col shrink-0">
+                            <button
+                                type="button"
+                                onClick={() => handleInputChange("minWidth", config.minWidth + 5)}
+                                className="h-4 w-6 flex items-center justify-center border border-gray-200 rounded-t hover:bg-gray-50 transition-colors"
+                                aria-label="Increase by 5px"
+                            >
+                                <ChevronUp className="h-3 w-3 text-gray-600" />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleInputChange("minWidth", Math.max(0, config.minWidth - 5))}
+                                className="h-4 w-6 flex items-center justify-center border border-gray-200 border-t-0 rounded-b hover:bg-gray-50 transition-colors"
+                                aria-label="Decrease by 5px"
+                            >
+                                <ChevronDown className="h-3 w-3 text-gray-600" />
+                            </button>
+                        </div>
                     </div>
                  </div>
 
@@ -715,6 +737,7 @@ export function FluidTypeCalculator() {
                             paddingBottom: '40px',
                             paddingLeft: '80px',
                             paddingRight: '80px',
+                            minWidth: '375px',
                             fontFamily: `"${config.fontFamily}", sans-serif`,
                             fontWeight: config.fontWeight,
                             lineHeight: config.lineHeight,
@@ -927,9 +950,9 @@ function HeadingPreview({
         return 'other';
     };
     
-    // Sort steps - for Shadcn, show by category (heading, body), then by size
+    // Sort steps - for Shadcn, show by category (body, heading), then by size
     // For regular fluid type, group by category, then reverse to show largest first
-    const categoryOrder = { heading: 0, body: 1 };
+    const categoryOrder = { heading: 1, body: 0 };
     
     const sortedSteps = isShadcn
         ? [...steps].sort((a, b) => {
@@ -1006,7 +1029,10 @@ function HeadingPreview({
     };
 
     return (
-        <div className={`space-y-12 ${viewMode === 'mobile' ? 'max-w-[375px]' : ''}`}>
+        <div 
+            className="space-y-12"
+            style={viewMode === 'mobile' ? { maxWidth: `${config.minWidth}px` } : {}}
+        >
             {sortedGroupedSteps.map(([category, categorySteps]) => (
                 <div key={category} className="space-y-8">
                     {categoryLabels[category] && (

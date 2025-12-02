@@ -19,6 +19,7 @@ import {
 
 const POPULAR_FONTS = [
   { value: "Inter", label: "Inter" },
+  { value: "Geist", label: "Geist" },
   { value: "Roboto", label: "Roboto" },
   { value: "Open Sans", label: "Open Sans" },
   { value: "Lato", label: "Lato" },
@@ -48,7 +49,6 @@ const POPULAR_FONTS = [
   { value: "Lora", label: "Lora" },
   { value: "PT Serif", label: "PT Serif" },
   { value: "Playwrite DE Grund", label: "Playwrite DE Grund" }, // From user list
-  { value: "Geist", label: "Geist" }, // Default Next.js
 ]
 
 interface FontPickerProps {
