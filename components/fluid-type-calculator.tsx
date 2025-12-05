@@ -912,8 +912,8 @@ export function FluidTypeCalculator() {
                              </>
                          ) : (
                              <Tabs defaultValue="examples" className="w-full h-full" onValueChange={(value) => {
-                                 if (value === 'examples' || value === 'dashboard' || value === 'tasks' || value === 'landing' || value === 'article') {
-                                     setPreviewTab(value as 'examples' | 'dashboard' | 'tasks' | 'landing' | 'article');
+                                 if (value === 'examples' || value === 'dashboard' || value === 'landing' || value === 'article') {
+                                     setPreviewTab(value as 'examples' | 'dashboard' | 'landing' | 'article');
                                  }
                              }}>
                                 <div className="mb-12">
