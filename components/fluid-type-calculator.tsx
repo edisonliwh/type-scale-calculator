@@ -18,12 +18,19 @@ import {
   Eye,
   ChevronDown,
   ChevronUp,
-  Github
+  Github,
+  MoveHorizontal
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -44,6 +51,7 @@ import { TasksPreview } from "@/components/previews/tasks-preview";
 import { SnakeBackground } from "@/components/snake-background";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { StyleMappingPanel, StyleMappings, TextElementId } from "@/components/style-mapping-panel";
+import { ScreenSizeController, RESPONSIVE_PRESETS } from "@/components/screen-size-controller";
 
 // ... existing code ...
 
@@ -74,7 +82,7 @@ const defaultConfig: FluidTypeConfig = {
   baseStep: "body",
   remValue: 16,
   prefix: "fs",
-  decimals: 2,
+  decimals: 3,
   useRems: true,
   useContainerWidth: false,
   includeFallbacks: false,
@@ -138,13 +146,24 @@ export function FluidTypeCalculator() {
   const [isCopied, setIsCopied] = useState(false);
   const [crabEnabled, setCrabEnabled] = useState(false);
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
-  const [previewTab, setPreviewTab] = useState<'examples' | 'dashboard' | 'tasks' | 'landing' | 'article'>('examples');
+  const [typeCategory, setTypeCategory] = useState<'all' | 'heading' | 'body'>('all');
+  const [previewTab, setPreviewTab] = useState<'examples' | 'dashboard' | 'landing' | 'article'>('examples');
   const [styleMappings, setStyleMappings] = useState<StyleMappings>({});
   const [showStyleMappingPanel, setShowStyleMappingPanel] = useState(false);
   const [roundToWholeNumber, setRoundToWholeNumber] = useState(true);
   const [roundLineHeightToMultipleOf4, setRoundLineHeightToMultipleOf4] = useState(true);
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [previewWidth, setPreviewWidth] = useState(9999); // Start with Desktop (full width)
+  const [isResponsiveMode, setIsResponsiveMode] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartX, setDragStartX] = useState(0);
+  const [dragStartWidth, setDragStartWidth] = useState(0);
+  const [dragSide, setDragSide] = useState<'left' | 'right' | null>(null);
+  const previewContainerRef = React.useRef<HTMLDivElement | null>(null);
   const mainContentRef = React.useRef<HTMLElement | null>(null);
+  const [containerTop, setContainerTop] = React.useState(0);
+  const [containerLeft, setContainerLeft] = React.useState(0);
+  const [containerRight, setContainerRight] = React.useState(0);
 
   useEffect(() => {
     loadGoogleFont(config.fontFamily);
@@ -152,6 +171,8 @@ export function FluidTypeCalculator() {
         loadGoogleFont(config.headingFontFamily);
     }
   }, [config.fontFamily, config.headingFontFamily]);
+
+
 
   // Toggle dots pattern on body when crab is enabled
   useEffect(() => {
@@ -184,8 +205,59 @@ export function FluidTypeCalculator() {
     }
   }, [crabEnabled]);
 
+  // Handle resize drag
+  useEffect(() => {
+    if (!isDragging || !dragSide) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const deltaX = e.clientX - dragStartX;
+      let newWidth: number;
+      
+      if (dragSide === 'left') {
+        // Left handle: dragging left (negative deltaX) increases width, dragging right decreases
+        newWidth = dragStartWidth - deltaX * 2;
+      } else {
+        // Right handle: dragging right (positive deltaX) increases width, dragging left decreases
+        newWidth = dragStartWidth + deltaX * 2;
+      }
+      
+      newWidth = Math.max(200, Math.min(3000, newWidth));
+      setPreviewWidth(Math.round(newWidth));
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      setDragSide(null);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragStartX, dragStartWidth, dragSide]);
+
+  const handleResizeStart = (e: React.MouseEvent, side: 'left' | 'right') => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+    setDragSide(side);
+    setDragStartX(e.clientX);
+    // If starting from full width (9999), use the actual container width
+    const startWidth = previewWidth >= 9999 && previewContainerRef.current 
+      ? previewContainerRef.current.offsetWidth 
+      : previewWidth;
+    setDragStartWidth(startWidth);
+    // Automatically switch to responsive mode when dragging
+    if (!isResponsiveMode) {
+      setIsResponsiveMode(true);
+    }
+  };
 
   // Calculate steps - use Shadcn styles if selected, otherwise use fluid calculation
+  // When previewWidth >= minWidth, use responsive settings (minFontSize, minRatio) for fixed sizes
   const steps = useMemo(() => {
     if (config.maxRatio === "shadcn" || config.minRatio === "shadcn") {
       // Return Shadcn text styles as steps
@@ -201,8 +273,37 @@ export function FluidTypeCalculator() {
         category: style.category,
       }));
     }
+    
+    // When preview width is at or below minWidth, apply responsive settings (minFontSize and minRatio)
+    // This is the breakpoint where mobile/responsive typography settings take effect
+    if (previewWidth <= config.minWidth) {
+      const baseIndex = config.steps.indexOf(config.baseStep);
+      const ratio = typeof config.minRatio === "number" ? config.minRatio : 1.125;
+      
+      return config.steps.map((step, index) => {
+        const power = index - baseIndex;
+        const isHeading = step.startsWith("heading-");
+        const isBody = step.startsWith("body");
+        
+        // Use headingBaseSize for headings, minFontSize for body
+        const headingBaseSize = 16;
+        const baseSize = isHeading ? headingBaseSize : config.minFontSize;
+        const fontSize = baseSize * Math.pow(ratio, power);
+        
+        return {
+          name: step,
+          minSize: fontSize,
+          maxSize: fontSize,
+          clamp: config.useRems 
+            ? `${(fontSize / config.remValue).toFixed(config.decimals)}rem`
+            : `${fontSize.toFixed(config.decimals)}px`,
+        };
+      });
+    }
+    
+    // When preview width is above minWidth, use fluid calculation that scales between min and max
     return calculateFluidType(config);
-  }, [config]);
+  }, [config, previewWidth]);
 
   // Generate CSS string
   const cssOutput = useMemo(() => {
@@ -234,7 +335,6 @@ export function FluidTypeCalculator() {
     // Clear all style mappings for the current active tab
     const tabPrefix = previewTab === 'examples' ? 'examples' 
       : previewTab === 'dashboard' ? 'dashboard' 
-      : previewTab === 'tasks' ? 'tasks'
       : previewTab === 'landing' ? 'landing'
       : 'article';
     setStyleMappings((prev) => {
@@ -319,8 +419,8 @@ export function FluidTypeCalculator() {
           >
               <span 
                   className={cn(
-                      "font-title font-bold text-xs uppercase tracking-wider transform rotate-90 whitespace-nowrap",
-                      config.previewMode === 'blog' ? "text-indigo-700" : "text-indigo-600"
+                  "font-title font-bold text-xs uppercase tracking-wider transform rotate-90 whitespace-nowrap",
+                  config.previewMode === 'blog' ? "text-indigo-700" : "text-indigo-600"
                   )}
                   style={{
                       opacity: config.previewMode === 'blog' ? 1 : 0.7 // 70% opacity when inactive
@@ -353,8 +453,8 @@ export function FluidTypeCalculator() {
           >
               <span 
                   className={cn(
-                      "font-title font-bold text-xs uppercase tracking-wider transform rotate-90 whitespace-nowrap",
-                      config.previewMode === 'landing' ? "text-lime-700" : "text-lime-600"
+                  "font-title font-bold text-xs uppercase tracking-wider transform rotate-90 whitespace-nowrap",
+                  config.previewMode === 'landing' ? "text-lime-700" : "text-lime-600"
                   )}
                   style={{
                       opacity: config.previewMode === 'landing' ? 1 : 0.7 // 70% opacity when inactive
@@ -403,7 +503,7 @@ export function FluidTypeCalculator() {
                             />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-600 font-medium">px</span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1 text-right">{(config.maxFontSize / config.remValue).toFixed(2)}rem</p>
+                        <p className="text-xs text-gray-500 mt-1 text-right">{Number((config.maxFontSize / config.remValue).toFixed(3))}rem</p>
                     </div>
                 </div>
 
@@ -441,12 +541,12 @@ export function FluidTypeCalculator() {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                {renderScaleOptions()}
+                                 {renderScaleOptions()}
                             </SelectContent>
                         </Select>
                     </div>
                 </div>
-             </div>
+            </div>
           </div>
 
           <div className="h-px bg-gray-100" />
@@ -584,8 +684,8 @@ export function FluidTypeCalculator() {
                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-600 font-medium">em</span>
                     </div>
                 </div>
-            </div>
-          </div>
+                    </div>
+                </div>
 
           <div className="h-px bg-gray-100" />
 
@@ -623,7 +723,7 @@ export function FluidTypeCalculator() {
                             </button>
                         </div>
                     </div>
-                 </div>
+                </div>
 
                  <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
                     <Label className="text-sm text-gray-600 w-[100px] shrink-0">Font-size</Label>
@@ -635,8 +735,8 @@ export function FluidTypeCalculator() {
                             className="bg-white border-gray-200 pr-8 h-9 focus-visible:ring-gray-400 w-full"
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-600 font-medium">px</span>
-                    </div>
-                 </div>
+                             </div>
+                        </div>
 
                  <div className="grid grid-cols-[1fr_minmax(0,1fr)] gap-3 items-center">
                     <Label className="text-sm text-gray-600 w-[100px] shrink-0">Scale</Label>
@@ -758,10 +858,10 @@ export function FluidTypeCalculator() {
                 >
                      <div 
                         className={cn(
-                            "max-w-[1200px] mx-auto transition-all duration-300 ease-out"
+                            "max-w-[1400px] mx-auto transition-all duration-300 ease-out"
                         )}
                         style={{
-                            paddingTop: '40px',
+                            paddingTop: '56px',
                             paddingBottom: '40px',
                             paddingLeft: '80px',
                             paddingRight: '80px',
@@ -775,21 +875,28 @@ export function FluidTypeCalculator() {
                          {config.previewMode === 'blog' ? (
                              <>
                                  <div className="mb-12">
-                                     <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'desktop' | 'mobile')} className="w-full">
+                                     <Tabs value={typeCategory} onValueChange={(value) => setTypeCategory(value as 'all' | 'heading' | 'body')} className="w-full">
                                          <TabsList className="bg-transparent p-0 gap-6">
                                              <TabsTrigger 
-                                                 value="desktop" 
+                                                 value="all" 
                                                  className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title" 
                                                  style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}
                                              >
-                                                 Desktop
+                                                 All Styles
                                              </TabsTrigger>
                                              <TabsTrigger 
-                                                 value="mobile" 
+                                                 value="heading" 
                                                  className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title" 
                                                  style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}
                                              >
-                                                 Mobile
+                                                 Headings
+                                             </TabsTrigger>
+                                             <TabsTrigger 
+                                                 value="body" 
+                                                 className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title" 
+                                                 style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}
+                                             >
+                                                 Body
                                              </TabsTrigger>
                                          </TabsList>
                                      </Tabs>
@@ -800,6 +907,7 @@ export function FluidTypeCalculator() {
                                      viewMode={viewMode}
                                      roundToWholeNumber={roundToWholeNumber}
                                      roundLineHeightToMultipleOf4={roundLineHeightToMultipleOf4}
+                                     categoryFilter={typeCategory}
                                  />
                              </>
                          ) : (
@@ -809,57 +917,145 @@ export function FluidTypeCalculator() {
                                  }
                              }}>
                                 <div className="mb-12">
-                                    <div className="flex items-center justify-between space-y-2">
+                                    <div className="flex items-center justify-between gap-4">
                                         <TabsList className="bg-transparent p-0 gap-6">
                                             <TabsTrigger value="examples" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title" style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}>Cards</TabsTrigger>
                                             <TabsTrigger value="dashboard" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title" style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}>Dashboard</TabsTrigger>
-                                            <TabsTrigger value="tasks" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title" style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}>Table</TabsTrigger>
                                             <TabsTrigger value="landing" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title" style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}>Landing</TabsTrigger>
                                             <TabsTrigger value="article" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground rounded-none p-0 font-medium text-base transition-none hover:text-foreground font-title" style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}>Article</TabsTrigger>
                                         </TabsList>
-                                        {(previewTab === 'examples' || previewTab === 'dashboard' || previewTab === 'tasks' || previewTab === 'landing' || previewTab === 'article') && (
-                                            <button
-                                                onClick={() => setShowStyleMappingPanel(!showStyleMappingPanel)}
-                                                className="text-sm text-muted-foreground hover:text-foreground transition-colors font-title"
-                                                style={{ textShadow: 'rgba(0, 0, 0, 0.15) 0px 5px 15px' }}
-                                            >
-                                                Customize text style mapping
-                                            </button>
+                                        {(previewTab === 'examples' || previewTab === 'dashboard' || previewTab === 'landing' || previewTab === 'article') && (
+                                            <div className="flex items-center gap-2">
+                                                <ScreenSizeController
+                                                    width={previewWidth}
+                                                    onWidthChange={(newWidth) => {
+                                                      setPreviewWidth(newWidth);
+                                                      // When in responsive mode, stay in responsive mode even if width matches a breakpoint
+                                                      // Only switch out of responsive mode if explicitly selecting a preset
+                                                      // (This is handled in handleResponsiveChange, not here)
+                                                    }}
+                                                    onResponsiveModeChange={setIsResponsiveMode}
+                                                    isResponsiveMode={isResponsiveMode}
+                                                />
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="outline" size="icon" aria-label="More options" className="bg-white">
+                                                            <MoreHorizontal className="h-5 w-5" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem onClick={() => setShowStyleMappingPanel(!showStyleMappingPanel)}>
+                                                            Customize text style mapping
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
-                                <div className="pb-20">
+                                <div className="pb-20 relative">
+                                    <div 
+                                        ref={previewContainerRef}
+                                        className="relative"
+                                        style={{ 
+                                            width: previewWidth >= 9999 ? '100%' : `${previewWidth}px`,
+                                            maxWidth: previewWidth >= 9999 ? '1400px' : '100%',
+                                            margin: '0 auto',
+                                        }}
+                                    >
+                                        {isResponsiveMode && (previewTab === 'examples' || previewTab === 'dashboard' || previewTab === 'landing' || previewTab === 'article') && (
+                                            <>
+                                                {/* Left resize handle */}
+                                                <button
+                                                    type="button"
+                                                    onMouseDown={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        handleResizeStart(e, 'left');
+                                                    }}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                    }}
+                                                    className="absolute -left-5 w-10 h-10 rounded-full border shadow-md hover:shadow-lg cursor-ew-resize z-[100] flex items-center justify-center transition-all group"
+                                                    style={{ 
+                                                        cursor: 'ew-resize',
+                                                        backgroundColor: 'rgba(247, 254, 231, 0.9)',
+                                                        borderColor: 'rgba(0, 0, 0, 0.15)',
+                                                        pointerEvents: 'auto',
+                                                        top: '400px',
+                                                    }}
+                                                    onMouseEnter={(e) => {
+                                                        e.currentTarget.style.backgroundColor = 'rgba(217, 249, 157, 0.9)';
+                                                        e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.2)';
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        e.currentTarget.style.backgroundColor = 'rgba(247, 254, 231, 0.9)';
+                                                        e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.15)';
+                                                    }}
+                                                    aria-label="Resize left"
+                                                >
+                                                    <MoveHorizontal className="h-5 w-5 text-lime-700 group-hover:text-lime-800 pointer-events-none" />
+                                                </button>
+                                                {/* Right resize handle */}
+                                                <button
+                                                    type="button"
+                                                    onMouseDown={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        handleResizeStart(e, 'right');
+                                                    }}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                    }}
+                                                    className="absolute -right-5 w-10 h-10 rounded-full border shadow-md hover:shadow-lg cursor-ew-resize z-[100] flex items-center justify-center transition-all group"
+                                                    style={{ 
+                                                        cursor: 'ew-resize',
+                                                        backgroundColor: 'rgba(247, 254, 231, 0.9)',
+                                                        borderColor: 'rgba(0, 0, 0, 0.15)',
+                                                        pointerEvents: 'auto',
+                                                        top: '400px',
+                                                    }}
+                                                    onMouseEnter={(e) => {
+                                                        e.currentTarget.style.backgroundColor = 'rgba(217, 249, 157, 0.9)';
+                                                        e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.2)';
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        e.currentTarget.style.backgroundColor = 'rgba(247, 254, 231, 0.9)';
+                                                        e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.15)';
+                                                    }}
+                                                    aria-label="Resize right"
+                                                >
+                                                    <MoveHorizontal className="h-5 w-5 text-lime-700 group-hover:text-lime-800 pointer-events-none" />
+                                                </button>
+                                            </>
+                                        )}
                                     <TabsContent value="examples" className="mt-0 border-none p-0 outline-none">
-                                        <ExamplesPreview steps={steps} config={config} styleMappings={styleMappings} />
+                                            <ExamplesPreview steps={steps} config={config} styleMappings={styleMappings} containerWidth={previewWidth} />
                                     </TabsContent>
                                     <TabsContent value="dashboard" className="mt-0 border-none p-0 outline-none">
                                         <Card>
                                             <CardContent className="p-0">
-                                                <DashboardPreview steps={steps} config={config} styleMappings={styleMappings} />
-                                            </CardContent>
-                                        </Card>
-                                    </TabsContent>
-                                    <TabsContent value="tasks" className="mt-0 border-none p-0 outline-none">
-                                        <Card>
-                                            <CardContent className="p-0">
-                                                <TasksPreview steps={steps} config={config} styleMappings={styleMappings} />
+                                                    <DashboardPreview steps={steps} config={config} styleMappings={styleMappings} containerWidth={previewWidth} />
                                             </CardContent>
                                         </Card>
                                     </TabsContent>
                                     <TabsContent value="landing" className="mt-0 border-none p-0 outline-none">
                                         <Card>
                                             <CardContent className="p-0">
-                                                <LandingPreview steps={steps} config={config} styleMappings={styleMappings} />
+                                                    <LandingPreview steps={steps} config={config} styleMappings={styleMappings} containerWidth={previewWidth} />
                                             </CardContent>
                                         </Card>
                                     </TabsContent>
                                     <TabsContent value="article" className="mt-0 border-none p-0 outline-none">
                                         <Card>
                                             <CardContent className="p-0">
-                                                <ArticlePreview steps={steps} config={config} styleMappings={styleMappings} />
+                                                    <ArticlePreview steps={steps} config={config} styleMappings={styleMappings} containerWidth={previewWidth} />
                                             </CardContent>
                                         </Card>
                                     </TabsContent>
+                                    </div>
                                 </div>
                              </Tabs>
                          )}
@@ -870,7 +1066,7 @@ export function FluidTypeCalculator() {
         
         {/* Footer with Reference Links */}
         <footer className="sticky bottom-0 px-6 shrink-0 border-t border-gray-100 z-20" style={{ paddingTop: '12px' }}>
-          <div className="max-w-[1200px] mx-auto">
+          <div className="max-w-[1400px] mx-auto">
             <div className="flex flex-wrap items-center justify-center gap-4 text-xs">
               <span style={{ color: 'oklch(55.6% 0 0)' }}>Reference:</span>
               <a
@@ -937,7 +1133,7 @@ export function FluidTypeCalculator() {
       </main>
 
       {/* RIGHT SIDEBAR: STYLE MAPPING - Only show when button is clicked */}
-      {config.previewMode === 'landing' && showStyleMappingPanel && (previewTab === 'examples' || previewTab === 'dashboard' || previewTab === 'tasks' || previewTab === 'landing' || previewTab === 'article') && (
+      {config.previewMode === 'landing' && showStyleMappingPanel && (previewTab === 'examples' || previewTab === 'dashboard' || previewTab === 'landing' || previewTab === 'article') && (
         <StyleMappingPanel
           styleMappings={styleMappings}
           onStyleMappingChange={handleStyleMappingChange}
@@ -958,13 +1154,15 @@ function HeadingPreview({
     config, 
     viewMode = 'desktop',
     roundToWholeNumber = false,
-    roundLineHeightToMultipleOf4 = false
+    roundLineHeightToMultipleOf4 = false,
+    categoryFilter = 'all'
 }: { 
     steps: any[], 
     config: FluidTypeConfig, 
     viewMode?: 'desktop' | 'mobile',
     roundToWholeNumber?: boolean,
-    roundLineHeightToMultipleOf4?: boolean
+    roundLineHeightToMultipleOf4?: boolean,
+    categoryFilter?: 'all' | 'heading' | 'body'
 }) {
     const isShadcn = config.maxRatio === "shadcn" || config.minRatio === "shadcn";
     
@@ -1056,12 +1254,17 @@ function HeadingPreview({
         "body-lg": "Emphasized body text for content that requires attention. Used for highlights, callouts, and important inline messages."
     };
 
+    // Filter grouped steps based on categoryFilter
+    const filteredGroupedSteps = categoryFilter === 'all' 
+        ? sortedGroupedSteps
+        : sortedGroupedSteps.filter(([category]) => category === categoryFilter);
+
     return (
         <div 
             className="space-y-12"
             style={viewMode === 'mobile' ? { maxWidth: `${config.minWidth}px` } : {}}
         >
-            {sortedGroupedSteps.map(([category, categorySteps]) => (
+            {filteredGroupedSteps.map(([category, categorySteps]) => (
                 <div key={category} className="space-y-8">
                     {categoryLabels[category] && (
                         <div className="flex items-center gap-4">
@@ -1084,17 +1287,17 @@ function HeadingPreview({
                                                 {isShadcn
                                                     ? (() => {
                                                         const fontSizePx = step.fontSize;
-                                                        const fontSizeRem = (step.fontSize / config.remValue).toFixed(2);
+                                                        const fontSizeRem = Number((step.fontSize / config.remValue).toFixed(3));
                                                         const lineHeightValue = step.lineHeight || config.lineHeight;
                                                         const lineHeightPx = step.fontSize * lineHeightValue;
-                                                        const fontSizePxDisplay = roundToWholeNumber ? Math.round(fontSizePx).toString() : Number(fontSizePx.toFixed(2));
+                                                        const fontSizePxDisplay = roundToWholeNumber ? Math.round(fontSizePx).toString() : Number(fontSizePx.toFixed(3));
                                                         let lineHeightPxDisplay;
                                                         if (roundLineHeightToMultipleOf4) {
                                                             lineHeightPxDisplay = Math.round(lineHeightPx / 4) * 4;
                                                         } else if (roundToWholeNumber) {
                                                             lineHeightPxDisplay = Math.round(lineHeightPx).toString();
                                                         } else {
-                                                            lineHeightPxDisplay = Number(lineHeightPx.toFixed(2));
+                                                            lineHeightPxDisplay = Number(lineHeightPx.toFixed(3));
                                                         }
                                                         return (
                                                             <>
@@ -1108,25 +1311,25 @@ function HeadingPreview({
                                                                     <path fillRule="evenodd" clipRule="evenodd" d="M11.0255 7.64104C11.6667 5.93553 14.0796 5.93553 14.7208 7.64104L18.74 18.3438C18.9053 18.7823 18.6849 19.2692 18.2464 19.4323C17.8079 19.5976 17.321 19.3772 17.1579 18.9387L16.0914 16.1028H9.65272L8.58623 18.9387C8.42317 19.3772 7.93621 19.5976 7.49768 19.4323C7.05918 19.2692 6.83881 18.7823 7.00409 18.3438L11.0255 7.64104ZM13.1364 8.2382C13.0439 7.99361 12.7001 7.99361 12.6076 8.2382L10.2873 14.41H15.4568L13.1364 8.2382Z" fill="currentColor"/>
                                                                     <path d="M21.8974 2C22.3646 2 22.7436 2.37901 22.7436 2.84615C22.7436 3.3133 22.3646 3.69231 21.8974 3.69231H3.84615C3.37901 3.69231 3 3.3133 3 2.84615C3 2.37901 3.37901 2 3.84615 2H21.8974Z" fill="currentColor"/>
                                                                 </svg>
-                                                                <span>{lineHeightValue.toFixed(1)}/{lineHeightPxDisplay}px</span>
+                                                                <span>{Number(lineHeightValue.toFixed(3))}/{lineHeightPxDisplay}px</span>
                                                             </>
                                                         );
                                                     })()
                                                     : (() => {
                                                         const size = viewMode === 'desktop' ? step.maxSize : step.minSize;
                                                         const fontSizePx = size;
-                                                        const fontSizeRem = (size / config.remValue).toFixed(2);
+                                                        const fontSizeRem = Number((size / config.remValue).toFixed(3));
                                                         const isHeading = step.name.startsWith('heading-');
                                                         const lineHeightValue = isHeading ? config.headingLineHeight : config.lineHeight;
                                                         const lineHeightPx = size * lineHeightValue;
-                                                        const fontSizePxDisplay = roundToWholeNumber ? Math.round(fontSizePx).toString() : Number(fontSizePx.toFixed(2));
+                                                        const fontSizePxDisplay = roundToWholeNumber ? Math.round(fontSizePx).toString() : Number(fontSizePx.toFixed(3));
                                                         let lineHeightPxDisplay;
                                                         if (roundLineHeightToMultipleOf4) {
                                                             lineHeightPxDisplay = Math.round(lineHeightPx / 4) * 4;
                                                         } else if (roundToWholeNumber) {
                                                             lineHeightPxDisplay = Math.round(lineHeightPx).toString();
                                                         } else {
-                                                            lineHeightPxDisplay = Number(lineHeightPx.toFixed(2));
+                                                            lineHeightPxDisplay = Number(lineHeightPx.toFixed(3));
                                                         }
                                                         return (
                                                             <>
@@ -1140,7 +1343,7 @@ function HeadingPreview({
                                                                     <path fillRule="evenodd" clipRule="evenodd" d="M11.0255 7.64104C11.6667 5.93553 14.0796 5.93553 14.7208 7.64104L18.74 18.3438C18.9053 18.7823 18.6849 19.2692 18.2464 19.4323C17.8079 19.5976 17.321 19.3772 17.1579 18.9387L16.0914 16.1028H9.65272L8.58623 18.9387C8.42317 19.3772 7.93621 19.5976 7.49768 19.4323C7.05918 19.2692 6.83881 18.7823 7.00409 18.3438L11.0255 7.64104ZM13.1364 8.2382C13.0439 7.99361 12.7001 7.99361 12.6076 8.2382L10.2873 14.41H15.4568L13.1364 8.2382Z" fill="currentColor"/>
                                                                     <path d="M21.8974 2C22.3646 2 22.7436 2.37901 22.7436 2.84615C22.7436 3.3133 22.3646 3.69231 21.8974 3.69231H3.84615C3.37901 3.69231 3 3.3133 3 2.84615C3 2.37901 3.37901 2 3.84615 2H21.8974Z" fill="currentColor"/>
                                                                 </svg>
-                                                                <span>{lineHeightValue.toFixed(1)}/{lineHeightPxDisplay}px</span>
+                                                                <span>{Number(lineHeightValue.toFixed(3))}/{lineHeightPxDisplay}px</span>
                                                             </>
                                                         );
                                                     })()
@@ -1207,7 +1410,8 @@ function HeadingPreview({
     );
 }
 
-function ArticlePreview({ steps, config, styleMappings = {} }: { steps: any[], config: FluidTypeConfig, styleMappings?: StyleMappings }) {
+function ArticlePreview({ steps, config, styleMappings = {}, containerWidth = 1440 }: { steps: any[], config: FluidTypeConfig, styleMappings?: StyleMappings, containerWidth?: number }) {
+  const isBelowMd = containerWidth < 768; // md breakpoint
     // Helper to get step name for an element, using mapping or default
     const getStepName = (elementId: string, defaultStep: string) => {
         return (styleMappings[elementId as keyof StyleMappings] as string) || defaultStep;
@@ -1278,7 +1482,7 @@ function ArticlePreview({ steps, config, styleMappings = {} }: { steps: any[], c
 
     return (
         <TooltipProvider delayDuration={0} skipDelayDuration={0}>
-            <div className="space-y-8 px-8 py-12 max-w-3xl mx-auto">
+            <div className="space-y-8 px-8 pt-10 pb-12 max-w-3xl mx-auto">
                 <article>
                     <TextWithTooltip stepName={getStepName("article-title", "heading-1")} as="h1" style={getStyle(getStepName("article-title", "heading-1"))} className="mb-4">
                         The silent symphony of type and sound
@@ -1466,7 +1670,8 @@ function ArticlePreview({ steps, config, styleMappings = {} }: { steps: any[], c
     );
 }
 
-function LandingPreview({ steps, config, styleMappings = {} }: { steps: any[], config: FluidTypeConfig, styleMappings?: StyleMappings }) {
+function LandingPreview({ steps, config, styleMappings = {}, containerWidth = 1440 }: { steps: any[], config: FluidTypeConfig, styleMappings?: StyleMappings, containerWidth?: number }) {
+  const isBelowMd = containerWidth < 768; // md breakpoint
     // Helper to get step name for an element, using mapping or default
     const getStepName = (elementId: string, defaultStep: string) => {
         return (styleMappings[elementId as keyof StyleMappings] as string) || defaultStep;
@@ -1537,7 +1742,7 @@ function LandingPreview({ steps, config, styleMappings = {} }: { steps: any[], c
 
     return (
         <TooltipProvider delayDuration={0} skipDelayDuration={0}>
-            <div className="space-y-24 px-8 py-12">
+            <div className="space-y-24 px-8 pt-4 pb-12">
                  <section className="space-y-6">
                      <TextWithTooltip stepName={getStepName("landing-badge", "body-sm")} style={getStyle(getStepName("landing-badge", "body-sm"))} className="uppercase tracking-widest font-bold text-gray-600">
                          Introducing Fluid Scale
@@ -1548,7 +1753,7 @@ function LandingPreview({ steps, config, styleMappings = {} }: { steps: any[], c
                      <TextWithTooltip stepName={getStepName("landing-description", "body-lg")} as="p" style={{ ...getStyle(getStepName("landing-description", "body-lg")), maxWidth: '45ch', opacity: 0.8 }}>
                          Create beautiful, responsive type scales that work seamlessly across mobile, tablet, and desktop screens without a single media query.
                      </TextWithTooltip>
-                     <div className="flex gap-4 pt-4">
+                     <div className="flex flex-wrap gap-4 pt-4">
                          <Button size="lg" className="rounded-full px-8 bg-black text-white hover:bg-gray-800" style={getStyle(getStepName("landing-button-primary", "body"))}>
                              <TextWithTooltip stepName={getStepName("landing-button-primary", "body")}>Get Started</TextWithTooltip>
                          </Button>
@@ -1558,7 +1763,7 @@ function LandingPreview({ steps, config, styleMappings = {} }: { steps: any[], c
                      </div>
                  </section>
 
-             <section className="grid md:grid-cols-3 gap-12">
+             <section className={`grid ${isBelowMd ? 'grid-cols-1' : 'md:grid-cols-3'} gap-12`}>
                  {[
                      { title: "Responsive", icon: Monitor, text: "Set your minimum and maximum font sizes, and let CSS clamp() handle the math. Your text will scale perfectly." },
                      { title: "Modular", icon: Type, text: "Choose from standard musical scales like Minor Third or Golden Ratio to ensure harmonious relationships." },
@@ -1579,7 +1784,7 @@ function LandingPreview({ steps, config, styleMappings = {} }: { steps: any[], c
              </section>
              
              <section className="border-t border-gray-200/50 pt-24">
-                 <div className="grid md:grid-cols-2 gap-16">
+                 <div className={`grid ${isBelowMd ? 'grid-cols-1' : 'md:grid-cols-2'} gap-16`}>
                      <div className="space-y-6">
                         <TextWithTooltip stepName={getStepName("landing-heading-2", "heading-2")} as="h2" style={getStyle(getStepName("landing-heading-2", "heading-2"))}>
                             Stop fighting with breakpoints

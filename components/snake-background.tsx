@@ -297,18 +297,12 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle, hideTo
               scoreRef.current = currentScore;
               setScore(currentScore);
               
-              // Check if total count reached 7 and end game
-              const newTotal = currentScore + homeCountRef.current;
-              if (newTotal >= 7 && !gameEndedRef.current) {
+              // Check if crab ate 7 food and end game
+              if (currentScore >= 7 && !gameEndedRef.current) {
                 gamePausedRef.current = true;
                 gameEndedRef.current = true;
                 setGameEnded(true);
-                // Determine winner message
-                if (currentScore > homeCountRef.current) {
-                  setGameMessage("Thanks for feeding my crab");
-                } else {
-                  setGameMessage("Thanks for saving food");
-                }
+                setGameMessage("Thanks for feeding my crab");
               }
               
               // Show tooltip above the crab
@@ -483,18 +477,12 @@ export function SnakeBackground({ containerRef, enabled = true, onToggle, hideTo
           setHomeCount(prev => {
             const newCount = prev + 1;
             homeCountRef.current = newCount;
-            // Check if total count reached 7 and end game
-            const newTotal = scoreRef.current + newCount;
-            if (newTotal >= 7 && !gameEndedRef.current) {
+            // Check if user collected 7 food to home and end game
+            if (newCount >= 7 && !gameEndedRef.current) {
               gamePausedRef.current = true;
               gameEndedRef.current = true;
               setGameEnded(true);
-              // Determine winner message
-              if (scoreRef.current > newCount) {
-                setGameMessage("Thanks for feeding my crab");
-              } else {
-                setGameMessage("Thanks for saving food");
-              }
+              setGameMessage("Thanks for saving food");
             }
             return newCount;
           });

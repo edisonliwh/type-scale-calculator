@@ -27,9 +27,11 @@ interface TasksPreviewProps {
   steps: any[];
   config: FluidTypeConfig;
   styleMappings?: StyleMappings;
+  containerWidth?: number;
 }
 
-export function TasksPreview({ steps, config, styleMappings = {} }: TasksPreviewProps) {
+export function TasksPreview({ steps, config, styleMappings = {}, containerWidth = 1440 }: TasksPreviewProps) {
+  const isBelowMd = containerWidth < 768; // md breakpoint
   // Helper to get step name for an element, using mapping or default
   const getStepName = (elementId: string, defaultStep: string) => {
     return (styleMappings[elementId as keyof StyleMappings] as string) || defaultStep;
@@ -106,9 +108,7 @@ export function TasksPreview({ steps, config, styleMappings = {} }: TasksPreview
     return (
       <Tooltip>
         <TooltipTrigger asChild>
-          <span className="inline-block w-full">
-            {children}
-          </span>
+          {children}
         </TooltipTrigger>
         <TooltipContent>
           <p>🦀 {mappedStepName}</p>
@@ -139,15 +139,10 @@ export function TasksPreview({ steps, config, styleMappings = {} }: TasksPreview
               <TextWithTooltip stepName={getStepName("tasks-description", "body")}>Here&apos;s a list of your tasks for this month!</TextWithTooltip>
             </p>
           </div>
-        <div className="flex items-center space-x-2">
-           <div className="flex items-center space-x-2 bg-secondary/50 p-1 rounded-md">
-             <AvatarUser />
-           </div>
-        </div>
       </div>
       
-      <div className="flex items-center justify-between">
-        <div className="flex flex-1 items-center space-x-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-1 items-center space-x-2 min-w-0">
           <InputWithTooltip stepName={getStepName("tasks-filter-input", "body-sm")}>
             <Input
               placeholder="Filter tasks..."
@@ -155,15 +150,15 @@ export function TasksPreview({ steps, config, styleMappings = {} }: TasksPreview
               style={getStyle(getStepName("tasks-filter-input", "body-sm"))}
             />
           </InputWithTooltip>
-          <Button variant="outline" size="sm" className="h-8 border-dashed" style={getStyle(getStepName("tasks-filter-button", "body-sm"))}>
-            <TextWithTooltip stepName={getStepName("tasks-filter-button", "body-sm")}>Status</TextWithTooltip>
+          <Button variant="outline" size="sm" className="h-8 border-dashed" style={getStyle(getStepName("tasks-filter-button", "body"))}>
+            <TextWithTooltip stepName={getStepName("tasks-filter-button", "body")}>Status</TextWithTooltip>
           </Button>
-          <Button variant="outline" size="sm" className="h-8 border-dashed" style={getStyle(getStepName("tasks-filter-button", "body-sm"))}>
-            <TextWithTooltip stepName={getStepName("tasks-filter-button", "body-sm")}>Priority</TextWithTooltip>
+          <Button variant="outline" size="sm" className="h-8 border-dashed" style={getStyle(getStepName("tasks-filter-button", "body"))}>
+            <TextWithTooltip stepName={getStepName("tasks-filter-button", "body")}>Priority</TextWithTooltip>
           </Button>
         </div>
-        <Button size="sm" className="ml-auto h-8 lg:flex" style={getStyle(getStepName("tasks-filter-button", "body-sm"))}>
-          <TextWithTooltip stepName={getStepName("tasks-filter-button", "body-sm")}>View</TextWithTooltip>
+        <Button size="sm" className="h-8 lg:flex" style={getStyle(getStepName("tasks-filter-button", "body"))}>
+          <TextWithTooltip stepName={getStepName("tasks-filter-button", "body")}>View</TextWithTooltip>
         </Button>
       </div>
 
@@ -238,10 +233,10 @@ export function TasksPreview({ steps, config, styleMappings = {} }: TasksPreview
         </Table>
       </div>
        <div className="flex items-center justify-end space-x-2 py-4">
-        <Button variant="outline" size="sm" style={getStyle(getStepName("tasks-pagination", "body-sm"))}>
+        <Button variant="outline" size="sm" style={getStyle(getStepName("tasks-pagination", "body"))}>
           <TextWithTooltip stepName={getStepName("tasks-pagination", "body-sm")}>Previous</TextWithTooltip>
         </Button>
-        <Button variant="outline" size="sm" style={getStyle(getStepName("tasks-pagination", "body-sm"))}>
+        <Button variant="outline" size="sm" style={getStyle(getStepName("tasks-pagination", "body"))}>
           <TextWithTooltip stepName={getStepName("tasks-pagination", "body-sm")}>Next</TextWithTooltip>
         </Button>
       </div>
@@ -250,9 +245,4 @@ export function TasksPreview({ steps, config, styleMappings = {} }: TasksPreview
   );
 }
 
-function AvatarUser() {
-    return (
-        <div className="h-8 w-8 rounded-full bg-black/10" />
-    )
-}
 

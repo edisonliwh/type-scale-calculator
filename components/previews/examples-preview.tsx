@@ -33,9 +33,11 @@ interface ExamplesPreviewProps {
   steps: any[];
   config: FluidTypeConfig;
   styleMappings?: StyleMappings;
+  containerWidth?: number;
 }
 
-export function ExamplesPreview({ steps, config, styleMappings = {} }: ExamplesPreviewProps) {
+export function ExamplesPreview({ steps, config, styleMappings = {}, containerWidth = 1440 }: ExamplesPreviewProps) {
+  const isBelowMd = containerWidth < 768; // md breakpoint
   // Helper to get step name for an element, using mapping or default
   const getStepName = (elementId: string, defaultStep: string) => {
     return (styleMappings[elementId as keyof StyleMappings] as string) || defaultStep;
@@ -148,9 +150,7 @@ export function ExamplesPreview({ steps, config, styleMappings = {} }: ExamplesP
     return (
       <Tooltip>
         <TooltipTrigger asChild>
-          <span className="inline-block w-full">
-            {children}
-          </span>
+          {children}
         </TooltipTrigger>
         <TooltipContent>
           <p>{getRandomFoodEmoji()} {mappedStepName}</p>
@@ -166,9 +166,7 @@ export function ExamplesPreview({ steps, config, styleMappings = {} }: ExamplesP
     return (
       <Tooltip>
         <TooltipTrigger asChild>
-          <span className="inline-block w-full">
-            {children}
-          </span>
+          {children}
         </TooltipTrigger>
         <TooltipContent>
           <p>{getRandomFoodEmoji()} {mappedStepName}</p>
@@ -179,7 +177,7 @@ export function ExamplesPreview({ steps, config, styleMappings = {} }: ExamplesP
 
   return (
     <TooltipProvider delayDuration={0} skipDelayDuration={0}>
-      <div className="columns-1 lg:columns-2 xl:columns-3 gap-6 space-y-6 pb-20">
+      <div className={`${isBelowMd ? 'columns-1' : 'md:columns-2 lg:columns-3'} gap-6 space-y-6 pb-20`}>
       {/* Card 1: Payment Method */}
       <Card className="break-inside-avoid shadow-sm">
         <CardHeader>
@@ -191,7 +189,7 @@ export function ExamplesPreview({ steps, config, styleMappings = {} }: ExamplesP
           </CardDescriptionWithTooltip>
         </CardHeader>
         <CardContent className="grid gap-6">
-          <RadioGroup defaultValue="card" className="grid grid-cols-3 gap-4">
+          <RadioGroup defaultValue="card" className={`grid ${isBelowMd ? 'grid-cols-1' : 'md:grid-cols-3'} gap-4`}>
             <div>
               <RadioGroupItem value="card" id="card" className="peer sr-only" />
               <Label
@@ -245,7 +243,7 @@ export function ExamplesPreview({ steps, config, styleMappings = {} }: ExamplesP
               <Input id="number" placeholder="" style={getStyle(getStepName("examples-input", "body"))} />
             </InputWithTooltip>
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className={`grid ${isBelowMd ? 'grid-cols-1' : 'md:grid-cols-3'} gap-4`}>
             <div className="grid gap-2">
               <Label htmlFor="month" style={getStyle(getStepName("examples-label", "body-sm"))}>
                 <TextWithTooltip stepName={getStepName("examples-label", "body-sm")}>Expires</TextWithTooltip>
@@ -309,7 +307,7 @@ export function ExamplesPreview({ steps, config, styleMappings = {} }: ExamplesP
           </CardDescriptionWithTooltip>
         </CardHeader>
         <CardContent className="grid gap-6">
-          <div className="flex items-center justify-between space-x-4">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center space-x-4">
               <Avatar>
                 <AvatarFallback>SD</AvatarFallback>
@@ -336,7 +334,7 @@ export function ExamplesPreview({ steps, config, styleMappings = {} }: ExamplesP
               </Select>
             </SelectWithTooltip>
           </div>
-          <div className="flex items-center justify-between space-x-4">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center space-x-4">
               <Avatar>
                 <AvatarFallback>JL</AvatarFallback>
@@ -377,11 +375,11 @@ export function ExamplesPreview({ steps, config, styleMappings = {} }: ExamplesP
           </CardDescriptionWithTooltip>
         </CardHeader>
         <CardContent className="grid gap-4">
-          <div className="grid grid-cols-2 gap-6">
-            <Button variant="outline" style={getStyle("body-sm")}>
+          <div className={`grid ${isBelowMd ? 'grid-cols-1' : 'md:grid-cols-2'} gap-6`}>
+            <Button variant="outline" style={getStyle("body")}>
               <TextWithTooltip stepName={getStepName("examples-label", "body-sm")}>Github</TextWithTooltip>
             </Button>
-            <Button variant="outline" style={getStyle("body-sm")}>
+            <Button variant="outline" style={getStyle("body")}>
               <TextWithTooltip stepName={getStepName("examples-label", "body-sm")}>Google</TextWithTooltip>
             </Button>
           </div>
@@ -475,7 +473,7 @@ export function ExamplesPreview({ steps, config, styleMappings = {} }: ExamplesP
           </CardDescriptionWithTooltip>
         </CardHeader>
         <CardContent className="grid gap-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className={`grid ${isBelowMd ? 'grid-cols-1' : 'md:grid-cols-2'} gap-4`}>
              <div className="grid gap-2">
                 <Label htmlFor="area" style={getStyle("body-sm")}>
                   <TextWithTooltip stepName={getStepName("examples-label", "body-sm")}>Area</TextWithTooltip>
@@ -531,11 +529,11 @@ export function ExamplesPreview({ steps, config, styleMappings = {} }: ExamplesP
              </InputWithTooltip>
           </div>
         </CardContent>
-        <CardFooter className="justify-between space-x-2">
-            <Button variant="ghost" style={getStyle("body-sm")}>
+        <CardFooter className="flex flex-wrap gap-2">
+            <Button variant="ghost" style={getStyle("body")}>
               <TextWithTooltip stepName={getStepName("examples-label", "body-sm")}>Cancel</TextWithTooltip>
             </Button>
-            <Button style={getStyle("body-sm")}>
+            <Button style={getStyle("body")} className="ml-auto">
               <TextWithTooltip stepName={getStepName("examples-label", "body-sm")}>Submit</TextWithTooltip>
             </Button>
         </CardFooter>

@@ -134,6 +134,11 @@ export function StyleMappingPanel({
     // Default mappings based on element type
     // Order matters: most specific first
     
+    // Dashboard card titles - use body-lg
+    if (elementId === "dashboard-card-title") {
+      return "body-lg";
+    }
+    
     // Main titles and headings (specific IDs first)
     if (elementId === "landing-heading" || elementId === "article-title") {
       return "heading-1";
@@ -196,8 +201,13 @@ export function StyleMappingPanel({
       return "body-sm";
     }
     
-    // Buttons and tabs
-    if (elementId.includes("button") || elementId.includes("tabs")) {
+    // Buttons
+    if (elementId.includes("button")) {
+      return "body";
+    }
+    
+    // Tabs
+    if (elementId.includes("tabs")) {
       return "body-sm";
     }
     
@@ -238,7 +248,7 @@ export function StyleMappingPanel({
     
     // Pagination
     if (elementId.includes("pagination")) {
-      return "body-sm";
+      return "body";
     }
     
     // Table cells
